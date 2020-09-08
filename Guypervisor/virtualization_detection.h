@@ -25,5 +25,5 @@ namespace virtualization {
 	bool vendor_is_intel();
 	bool supports_vtx_operation();
 
-	void enter_vmxon_mode();
+	bool enter_vmxon_mode();
 }

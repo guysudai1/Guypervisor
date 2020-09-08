@@ -2,7 +2,7 @@
 #include "virtualization_detection.h"
 #include <intrin.h>
 
-inline void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
+void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
 {
 	/*
 	2. Software can determine a processor’s physical - address width by executing CPUID with 80000008H in EAX.The physical - address

@@ -14,14 +14,14 @@ struct AccessRights {
 	// 0 = absent, 1 = present
 	UINT32 segmentPresent : 1;
 
-	UINT32 reserved : 4;
+	UINT32 reserved1 : 4;
 	
 	// Available for use by system software
 	UINT32 availableBySystem : 1;
 
 	union {
 		// Not CS segment
-		UINT32 reserved : 1;
+		UINT32 reserved2 : 1;
 		// Only for CS segment
 		UINT32 bit_mode_64 : 1;
 	};
@@ -35,7 +35,7 @@ struct AccessRights {
 	// 0 = usable, 1 = unusable
 	UINT32 segmentUnusable : 1;
 
-	UINT32 reserved : 16;
+	UINT32 reserved3 : 16;
 };
 
 struct descriptorTableRegister {
@@ -215,12 +215,12 @@ struct PinBasedControls {
 	// If this control is 1, external interrupts cause VM exits
 	UINT32 externalInterruptExit : 1;
 
-	UINT32 reserved : 2;
+	UINT32 reserved1 : 2;
 
 	// If this control is 1, non-maskable interrupts (NMIs) cause VM exits
 	UINT32 nmiExiting : 1;
 
-	UINT32 reserved : 1;
+	UINT32 reserved2 : 1;
 
 	// NMIs never blocked
 	UINT32 virtualNMI : 1;
@@ -231,7 +231,7 @@ struct PinBasedControls {
 	// processor treats interrupts with the posted-interrupt notification vector
 	UINT32 processInterrupts : 1;
 
-	UINT32 reserved : 25;
+	UINT32 reserved3 : 25;
 };
 
 struct VMExecCtrlFields
@@ -369,6 +369,45 @@ struct SecondaryVMExecCtrls {
 	UINT32 useTSCScaling : 1;
 
 	UINT32 reserved3 : 6;
+};
+
+struct TimeScale {
+	// Enabled if the "RDTSC Exiting " CTRL is 0
+	UINT64 tscOffset; // Enabled if the use TSC offseting exists
+	UINT64 tscScaling; // Enabled if the use TSC scaling exists
+};
+
+typedef char bitmap[4 * 1024];
+
+struct IOBitmap {
+	/* 
+	A logical processor uses these bitmaps if and 
+	only if the “use I/O bitmaps”  */
+	bitmap A;
+	bitmap B;
+};
+
+struct EPTP {
+	/*
+	Possible memory types:
+	 *	0 = Uncacheable
+	 *  6 = Write-back
+	*/
+	UINT64 memoryType : 3;
+
+	// This value is 1 less than the EPT page-walk length (see Section 28.2.2)
+	UINT64 walkPathMinusOne : 3;
+
+	// Setting this control to 1 enables accessed and dirty flags for EPT (see Section 28.2.4)2
+	//  Not all processors support accessed and dirty flags for EPT. Software should read the VMX capability MSR
+	// IA32_VMX_EPT_VPID_CAP(see Appendix A.10) to determine whether the processor supports this feature
+	UINT64 dirtyAccessFlags : 1;
+
+	UINT64 reserved1 : 5;
+
+	//  N is the physical-address width supported by the logical processor. Software can determine a processor’s physical-address width by
+	// executing CPUID with 80000008H in EAX.The physical - address width is returned in bits 7:0 of EAX.
+	UINT64 addressPlusReserved : 52;
 };
 
 struct VMExitCtrlFields {
@@ -613,7 +652,20 @@ struct VMCS {
 
 	GuestState guestState;
 	HostState hostState;
+	
 	VMExecCtrlFields executionCtrl;
+	SecondaryVMExecCtrls secondExecCtrl;
+
+	UINT32 exceptionBitmap;
+
+	IOBitmap ioBitmaps;
+
+	TimeScale timeFields;
+	
+	EPTP eptPtr;
+	
+	UINT16 vpid;
+
 	VMExitCtrlFields exitCtrl;
 	VMEntryCtrlFields entryCtrl;
 	VMExitInformationFields exitInformation;

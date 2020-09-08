@@ -78,9 +78,6 @@ void Device::operator delete(void* p, unsigned __int64 size)
     // this->pDeviceObject);
 }
 
-
-
-
 Device::~Device()
 {
     // delet this

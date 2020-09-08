@@ -125,6 +125,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
+    <Inf2CatUseLocalTime>true</Inf2CatUseLocalTime>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
@@ -162,7 +163,9 @@
     <ClCompile Include="my_standard.cpp" />
     <ClCompile Include="pic.cpp" />
     <ClCompile Include="print.cpp" />
+    <ClCompile Include="virtualization.cpp" />
     <ClCompile Include="virtualization_detection.cpp" />
+    <ClCompile Include="virtual_addr_helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Device.h" />
@@ -171,7 +174,10 @@
     <ClInclude Include="my_standard.h" />
     <ClInclude Include="pic.h" />
     <ClInclude Include="print.h" />
+    <ClInclude Include="processorContext.h" />
     <ClInclude Include="virtualization_detection.h" />
+    <ClInclude Include="virtual_addr_helpers.h" />
+    <ClInclude Include="vmcs.h" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm" />
