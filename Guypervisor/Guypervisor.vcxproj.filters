@@ -24,25 +24,39 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Driver.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClInclude Include="Device.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Driver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="irp_handlers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="print.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="processor_context.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="virtual_addr_helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="virtualization.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vmcs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="print.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="my_standard.cpp">
+    <ClCompile Include="Driver.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="irp_handlers.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="virtualization_detection.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="virtual_addr_helpers.cpp">
@@ -51,38 +65,9 @@
     <ClCompile Include="virtualization.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Driver.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Device.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="print.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="my_standard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="irp_handlers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="virtualization_detection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="virtual_addr_helpers.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="processorContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="vmcs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClCompile Include="virtualization_detection.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm">

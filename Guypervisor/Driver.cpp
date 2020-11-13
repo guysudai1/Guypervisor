@@ -1,10 +1,11 @@
 #include "Driver.h"
 #include "Device.h"
 #include "print.h"
-#include "virtualization_detection.h"
+#include "virtualization.h"
 
 #define DEVICE_NAME L"\\Device\\Guypervisor"
 #define DOS_DEVICE_NAME L"\\DosDevices\\Guypervisor"
+#define HAS_CPUID_FLAG_MASK 1 << 21
 
 Device* guyPervisor;
 

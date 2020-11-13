@@ -1,8 +1,7 @@
 #pragma once
 
-#include <ntifs.h>
-#include <wdf.h>
-// #include "my_standard.h"
+#include <wdm.h>
+
 #include "irp_handlers.h"
 
 
@@ -32,6 +31,4 @@ private:
     UNICODE_STRING deviceName;
     UNICODE_STRING dosDeviceName;
     PDEVICE_OBJECT pDeviceObject;
-
-
 };

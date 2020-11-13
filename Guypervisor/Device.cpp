@@ -4,7 +4,7 @@
 extern Device* guyPervisor;
 
 
-NTSTATUS Device::AddFunctions(PDRIVER_OBJECT pDriverObject)
+NTSTATUS Device::AddFunctions(_In_ PDRIVER_OBJECT pDriverObject)
 {
     NTSTATUS status = STATUS_SUCCESS;
 
@@ -20,7 +20,7 @@ NTSTATUS Device::AddFunctions(PDRIVER_OBJECT pDriverObject)
     return status;
 }
 
-void Device::DriverUnload(PDRIVER_OBJECT pDeviceObject)
+void Device::DriverUnload(_In_ PDRIVER_OBJECT pDeviceObject)
 {
     UNREFERENCED_PARAMETER(pDeviceObject);
 
@@ -28,7 +28,7 @@ void Device::DriverUnload(PDRIVER_OBJECT pDeviceObject)
     delete guyPervisor;
 }
 
-NTSTATUS Device::InitDevice(PDRIVER_OBJECT pDriverObject)
+NTSTATUS Device::InitDevice(_In_ PDRIVER_OBJECT pDriverObject)
 {
     // Initiates device with IoCreateDevice
     NTSTATUS status;

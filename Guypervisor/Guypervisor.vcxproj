@@ -157,27 +157,22 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Device.cpp" />
-    <ClCompile Include="Driver.cpp" />
-    <ClCompile Include="irp_handlers.cpp" />
-    <ClCompile Include="my_standard.cpp" />
-    <ClCompile Include="pic.cpp" />
-    <ClCompile Include="print.cpp" />
-    <ClCompile Include="virtualization.cpp" />
-    <ClCompile Include="virtualization_detection.cpp" />
-    <ClCompile Include="virtual_addr_helpers.cpp" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Device.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="irp_handlers.h" />
-    <ClInclude Include="my_standard.h" />
-    <ClInclude Include="pic.h" />
     <ClInclude Include="print.h" />
-    <ClInclude Include="processorContext.h" />
-    <ClInclude Include="virtualization_detection.h" />
+    <ClInclude Include="processor_context.h" />
+    <ClInclude Include="virtualization.h" />
     <ClInclude Include="virtual_addr_helpers.h" />
     <ClInclude Include="vmcs.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Device.cpp" />
+    <ClCompile Include="Driver.cpp" />
+    <ClCompile Include="irp_handlers.cpp" />
+    <ClCompile Include="virtualization.cpp" />
+    <ClCompile Include="virtualization_detection.cpp" />
+    <ClCompile Include="virtual_addr_helpers.cpp" />
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm" />

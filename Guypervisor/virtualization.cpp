@@ -1,11 +1,10 @@
-#include "virtualization_detection.h"
+#include <wdm.h>
+#include <intrin.h>
+
 #include "virtual_addr_helpers.h"
 #include "vmcs.h"
 #include "print.h"
 
-#include <intrin.h>
-#include <ntifs.h>
-#include <wdf.h>
 
 #define ALIGNMENT_SIZE 4*1024 // 4KB
 
@@ -87,5 +86,7 @@ namespace virtualization {
 
 		// Just for testing
 		__vmx_off();
+
+		return true;
 	}
 }

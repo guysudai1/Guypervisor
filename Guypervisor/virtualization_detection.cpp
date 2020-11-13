@@ -1,24 +1,15 @@
-#include "virtualization_detection.h"
+#include <wdm.h>
+#include <intrin.h>
+#include <string.h>
+
+#include "processor_context.h"
 #include "virtual_addr_helpers.h"
 #include "vmcs.h"
 #include "print.h"
 
-#include <intrin.h>
-#include <string.h>
-#include <ntifs.h>
-#include <wdf.h>
-
-
-#define HAS_CPUID_FLAG_MASK 1 << 21
-
-#define NUMBER_OF_REGISTERS 4 // eax, ebx, ecx, edx
-#define SIZE_OF_REGISTER 4 // in bytes
 
 const char* INTEL_VENDOR_STRING = "GenuineIntel";
-
 #define BIT_NUMBER 5
-#define UINT32_SIZE 32 // in bits
-
 
 extern "C" bool is_cpuid_supported(unsigned int mask);
 
@@ -29,7 +20,7 @@ namespace virtualization {
 		/*
 		Looks for GenuineIntel string in CPUINFO structure
 		*/
-		cpuinfo cpuidStruct;
+		Processor::CPUInfo cpuidStruct;
 		char vendorString[12];
 
 		// Acquire vendor string
@@ -51,12 +42,12 @@ namespace virtualization {
 		According to intel's manual:
 			If CPUID.1:ECX.VMX[bit 5] = 1, then VMX operation is supported
 		*/
-		cpuinfo currentCpu;
+		Processor::CPUInfo currentCpu;
 
 		__cpuid(reinterpret_cast<int*>(&currentCpu), 1);
 
 		// Check if 5th bit is on
-		return currentCpu.regs.ecx & (1 << (UINT32_SIZE - BIT_NUMBER));
+		return currentCpu.regs.ecx & (1 << (sizeof(UINT32) * 8 - BIT_NUMBER));
 	}
 
 }

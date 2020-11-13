@@ -1,7 +1,6 @@
 #pragma once
 
-#include <ntifs.h>
-#include <wdf.h>
+#include <wdm.h>
 
 struct AccessRights {
 	UINT32 segmentType : 3;

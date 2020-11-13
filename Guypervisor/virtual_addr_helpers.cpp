@@ -1,5 +1,5 @@
 #include "virtual_addr_helpers.h"
-#include "virtualization_detection.h"
+#include "processor_context.h"
 #include <intrin.h>
 
 void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
@@ -10,7 +10,7 @@ void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
 	*/
 	PHYSICAL_ADDRESS MAX_PHYS = { 0 };
 
-	virtualization::cpuinfo currentCpu;
+	Processor::CPUInfo currentCpu;
 	__cpuid(reinterpret_cast<int*>(&currentCpu), 0x80000008);
 
 	// Acquire bits 7:0
