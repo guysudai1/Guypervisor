@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __VIRTUALIZATION_H
+#define __VIRTUALIZATION_H
 
 extern "C" bool is_cpuid_supported(unsigned int mask);
 
@@ -15,3 +16,5 @@ namespace virtualization {
 
 	bool enter_vmxon_mode();
 }
+
+#endif /* __VIRTUALIZATION_H */

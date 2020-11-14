@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __VMCS_H
+#define __VMCS_H
 
 #include <wdm.h>
 
@@ -669,3 +670,5 @@ struct VMCS {
 	VMEntryCtrlFields entryCtrl;
 	VMExitInformationFields exitInformation;
 };
+
+#endif /* __VMCS_H */

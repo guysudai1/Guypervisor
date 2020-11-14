@@ -1,6 +1,12 @@
 #include "virtual_addr_helpers.h"
-#include "processor_context.h"
+
 #include <intrin.h>
+
+#include "processor_context.h"
+
+
+#define ADDRESS_WIDTH_CPUID 0x80000008
+
 
 void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
 {
@@ -9,12 +15,13 @@ void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
 		width is returned in bits 7:0 of EAX.
 	*/
 	PHYSICAL_ADDRESS MAX_PHYS = { 0 };
+	processor::CPUInfo currentCpu;
+	unsigned char phys_width;
 
-	Processor::CPUInfo currentCpu;
-	__cpuid(reinterpret_cast<int*>(&currentCpu), 0x80000008);
+	__cpuid(reinterpret_cast<int*>(&currentCpu), ADDRESS_WIDTH_CPUID);
 
 	// Acquire bits 7:0
-	unsigned char phys_width = currentCpu.regs.eax & 0xff; 
+	phys_width = currentCpu.regs.eax.all & 0xff; 
 	MAX_PHYS.QuadPart = static_cast<LONGLONG>(1) << static_cast<LONGLONG>(phys_width);
 
 	maxPhys = MAX_PHYS;

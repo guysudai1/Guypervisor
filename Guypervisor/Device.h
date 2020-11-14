@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __DEVICE_H
+#define __DEVICE_H
 
 #include <wdm.h>
 
@@ -8,16 +9,18 @@
 class Device {
 public:
 
-    // Adds functions to driver object
     static NTSTATUS AddFunctions(
-        _In_ PDRIVER_OBJECT    pDriverObject);
+        _In_ PDRIVER_OBJECT    pDriverObject
+    );
 
     static void DriverUnload(
-        _In_ PDRIVER_OBJECT    pDriverObject);
+        _In_ PDRIVER_OBJECT    pDriverObject
+    );
 
     // Initiates device object
     NTSTATUS InitDevice(
-        _In_ PDRIVER_OBJECT		pDriverObject);
+        _In_ PDRIVER_OBJECT		pDriverObject
+    );
 
     // Creates symbolic link to device
     NTSTATUS CreateSymlink();
@@ -32,3 +35,5 @@ private:
     UNICODE_STRING dosDeviceName;
     PDEVICE_OBJECT pDeviceObject;
 };
+
+#endif /* __DEVICE_H */

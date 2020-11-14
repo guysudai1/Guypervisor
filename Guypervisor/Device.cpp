@@ -1,7 +1,8 @@
 #include "Device.h"
+
 #include "print.h"
 
-extern Device* guyPervisor;
+extern Device* g_guypervisor;
 
 
 NTSTATUS Device::AddFunctions(_In_ PDRIVER_OBJECT pDriverObject)
@@ -9,13 +10,13 @@ NTSTATUS Device::AddFunctions(_In_ PDRIVER_OBJECT pDriverObject)
     NTSTATUS status = STATUS_SUCCESS;
 
     for (int i = 0; i < IRP_MJ_MAXIMUM_FUNCTION; ++i) {
-        pDriverObject->MajorFunction[i] = IRPHandlers::GeneralHandlerIRP;
+        pDriverObject->MajorFunction[i] = irp_handlers::GeneralHandlerIRP;
     }
 
-    pDriverObject->MajorFunction[IRP_MJ_CREATE] = IRPHandlers::CreateHandlerIRP;
-    pDriverObject->MajorFunction[IRP_MJ_CLOSE] = IRPHandlers::CloseHandlerIRP;
-    pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IRPHandlers::IOCTLHandlerIRP;
-    pDriverObject->MajorFunction[IRP_MJ_WRITE] = IRPHandlers::WriteHandlerIRP;
+    pDriverObject->MajorFunction[IRP_MJ_CREATE] = irp_handlers::CreateHandlerIRP;
+    pDriverObject->MajorFunction[IRP_MJ_CLOSE] = irp_handlers::CloseHandlerIRP;
+    pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = irp_handlers::IOCTLHandlerIRP;
+    pDriverObject->MajorFunction[IRP_MJ_WRITE] = irp_handlers::WriteHandlerIRP;
 
     return status;
 }
@@ -25,7 +26,7 @@ void Device::DriverUnload(_In_ PDRIVER_OBJECT pDeviceObject)
     UNREFERENCED_PARAMETER(pDeviceObject);
 
     MDbgPrint("Unloading driver...");
-    delete guyPervisor;
+    delete g_guypervisor;
 }
 
 NTSTATUS Device::InitDevice(_In_ PDRIVER_OBJECT pDriverObject)
@@ -57,10 +58,10 @@ NTSTATUS Device::CreateSymlink()
     NTSTATUS status = STATUS_SUCCESS;
     
     // Delete symlink
-    IoDeleteSymbolicLink(&dosDeviceName);
+    (void)IoDeleteSymbolicLink(&this->dosDeviceName);
 
     // Create new symlink
-    status = IoCreateSymbolicLink(&dosDeviceName, &deviceName);
+    status = IoCreateSymbolicLink(&this->dosDeviceName, &this->deviceName);
     if (!NT_SUCCESS(status)) {
         MDbgPrint("Failed creating a symbolic link with error: %d", status);
     }
@@ -74,8 +75,6 @@ void Device::operator delete(void* p, unsigned __int64 size)
     
     IoDeleteDevice(ptr_to_delete->pDeviceObject);
     delete p;
-    // IoDeleteDevice(
-    // this->pDeviceObject);
 }
 
 Device::~Device()
@@ -83,7 +82,8 @@ Device::~Device()
     // delet this
 }
 
-Device::Device(const wchar_t* deviceName, const wchar_t* dosDeviceName)
+Device::Device(const wchar_t* deviceName, 
+               const wchar_t* dosDeviceName)
 {
     this->pDeviceObject = nullptr;
 

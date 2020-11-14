@@ -1,4 +1,5 @@
 #include "Driver.h"
+
 #include "Device.h"
 #include "print.h"
 #include "virtualization.h"
@@ -7,7 +8,7 @@
 #define DOS_DEVICE_NAME L"\\DosDevices\\Guypervisor"
 #define HAS_CPUID_FLAG_MASK 1 << 21
 
-Device* guyPervisor;
+Device* g_guypervisor;
 
 extern "C" 
 NTSTATUS
@@ -21,11 +22,10 @@ DriverEntry(
     NTSTATUS status = STATUS_SUCCESS;
     bool vendor_is_intel, supports_vtx, cpuid_supported;
     
-    
     // Check if the cpuid instruction is available
     cpuid_supported = is_cpuid_supported(HAS_CPUID_FLAG_MASK);
     if (!cpuid_supported) {
-        MDbgPrint("Failed because your processor doesn\'t support CPUID.");
+        MDbgPrint("Failed because your processor doesn\'t support CPUID.\n");
         status = STATUS_NOT_SUPPORTED;
         return status;
     }
@@ -33,7 +33,7 @@ DriverEntry(
     // Check if the vendor is Intel
     vendor_is_intel = virtualization::vendor_is_intel();
     if (!vendor_is_intel) {
-        MDbgPrint("Failed because your vendor is not Intel.");
+        MDbgPrint("Failed because your vendor is not Intel.\n");
         status = STATUS_NOT_SUPPORTED;
         return status;
     }
@@ -41,53 +41,35 @@ DriverEntry(
     // Check if CPU supports VTx
     supports_vtx = virtualization::supports_vtx_operation();
     if (!supports_vtx) {
-        MDbgPrint("Failed because your processor does not support VTx.");
+        MDbgPrint("Failed because your processor does not support VTx.\n");
         status = STATUS_NOT_SUPPORTED;
         return status;
     }
     
-
-    guyPervisor =  new Device(DEVICE_NAME, DOS_DEVICE_NAME);
-    status = guyPervisor->InitDevice(pDriverObject);
+    g_guypervisor =  new Device(DEVICE_NAME, DOS_DEVICE_NAME);
+    status = g_guypervisor->InitDevice(pDriverObject);
 
     if (!NT_SUCCESS(status)) {
-        MDbgPrint("Could not initiate device!");
-        delete guyPervisor;
+        MDbgPrint("Could not initiate device!\n");
+        delete g_guypervisor;
         return status;
     }
 
-    MDbgPrint("Successfully initiated device!");
+    MDbgPrint("Successfully initiated device!\n");
     // Initialize WDF.
 
     // Create symbolic link to DOS Device
-    status = guyPervisor->CreateSymlink();
+    status = g_guypervisor->CreateSymlink();
     if (!NT_SUCCESS(status)) {
-        delete guyPervisor;
+        delete g_guypervisor;
         return status;
     }
-    MDbgPrint("Successfully created symlink!");
+    MDbgPrint("Successfully created symlink!\n");
 
 	return status;
 }
 
+#undef DEVICE_NAME
+#undef DOS_DEVICE_NAME
+#undef HAS_CPUID_FLAG_MASK
 
-void* operator new(size_t count)
-{
-    // Allocate new device object
-    return ExAllocatePoolWithTag(NonPagedPoolExecute,
-        count,
-        'cool');
-}
-
-void operator delete (void* p) {
-    // Free device object
-    ExFreePoolWithTag(p,
-        'cool');
-}
-
-void operator delete (void* p, unsigned __int64 size) {
-    UNREFERENCED_PARAMETER(size);
-    // Free device object
-    ExFreePoolWithTag(p,
-        'cool');
-}
