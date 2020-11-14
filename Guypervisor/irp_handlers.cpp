@@ -99,7 +99,7 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	NTSTATUS status = STATUS_SUCCESS;
 	MDbgPrint("Entered EnterVmxHandler\n");
 
-	virtualization::enter_vmxon_mode();
+	virtualization::EnterVmxonMode();
 
 	MDbgPrint("Ended hypervisor\n");
 

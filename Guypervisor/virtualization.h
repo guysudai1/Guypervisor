@@ -1,7 +1,7 @@
 #ifndef __VIRTUALIZATION_H
 #define __VIRTUALIZATION_H
 
-extern "C" bool is_cpuid_supported(unsigned int mask);
+extern "C" bool IsCPUIdSupported(unsigned int mask);
 
 namespace virtualization {
 	/*
@@ -11,10 +11,10 @@ namespace virtualization {
 		ENTER_VMX = 0x801
 	};
 
-	bool vendor_is_intel();
-	bool supports_vtx_operation();
+	bool VendorIsIntel();
+	bool SupportsVtxOperation();
 
-	bool enter_vmxon_mode();
+	bool EnterVmxonMode();
 }
 
 #endif /* __VIRTUALIZATION_H */

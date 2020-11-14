@@ -166,6 +166,7 @@
     <ClInclude Include="Device.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="irp_handlers.h" />
+    <ClInclude Include="msr.h" />
     <ClInclude Include="print.h" />
     <ClInclude Include="processor_context.h" />
     <ClInclude Include="virtualization.h" />

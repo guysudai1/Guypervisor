@@ -23,7 +23,7 @@ DriverEntry(
     bool vendor_is_intel, supports_vtx, cpuid_supported;
     
     // Check if the cpuid instruction is available
-    cpuid_supported = is_cpuid_supported(HAS_CPUID_FLAG_MASK);
+    cpuid_supported = IsCPUIdSupported(HAS_CPUID_FLAG_MASK);
     if (!cpuid_supported) {
         MDbgPrint("Failed because your processor doesn\'t support CPUID.\n");
         status = STATUS_NOT_SUPPORTED;
@@ -31,7 +31,7 @@ DriverEntry(
     }
 
     // Check if the vendor is Intel
-    vendor_is_intel = virtualization::vendor_is_intel();
+    vendor_is_intel = virtualization::VendorIsIntel();
     if (!vendor_is_intel) {
         MDbgPrint("Failed because your vendor is not Intel.\n");
         status = STATUS_NOT_SUPPORTED;
@@ -39,7 +39,7 @@ DriverEntry(
     }
 
     // Check if CPU supports VTx
-    supports_vtx = virtualization::supports_vtx_operation();
+    supports_vtx = virtualization::SupportsVtxOperation();
     if (!supports_vtx) {
         MDbgPrint("Failed because your processor does not support VTx.\n");
         status = STATUS_NOT_SUPPORTED;

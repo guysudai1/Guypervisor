@@ -172,16 +172,59 @@ namespace processor {
 		UINT64 all;
 	} ControlRegister, * pControlRegister;
 
+	// IA32_FEATURE_CONTROL_MSR
 	typedef union {
-		struct
-		{
-			UINT64 _ : 61;
-			unsigned char vmxon_out_smx_op : 1;
-			unsigned char vmxon_in_smx_op : 1;
-			unsigned char lock : 1;
+		struct {
+			unsigned lock : 1;                  //!< [0]
+			unsigned enable_smx : 1;            //!< [1]
+			unsigned enable_vmxon : 1;          //!< [2]
+			unsigned reserved1 : 5;             //!< [3:7]
+			unsigned enable_local_senter : 7;   //!< [8:14]
+			unsigned enable_global_senter : 1;  //!< [15]
+			unsigned reserved2 : 16;            //!<
+			unsigned reserved3 : 32;            //!< [16:63]
 		} bitfield;
 		UINT64 all;
 	} FeatureControlMsr;
+
+	// IA32_VMX_BASIC
+	typedef union {
+		struct {
+			unsigned revision_id : 32;          // [0:31]
+			unsigned reserved3 : 32;            // [32:63]
+		} bitfield;
+		UINT64 all;
+	} VmxBasicMsr;
+
+	// CR4
+	typedef union {
+		struct {
+			unsigned vme : 1;			// [0]
+			unsigned pvi : 1;			// [1]
+			unsigned tsd : 1;			// [2]
+			unsigned de  : 1;           // [3]
+			unsigned pse : 1;			// [4]
+			unsigned pae : 1;			// [5]
+			unsigned mce : 1;			// [6]
+			unsigned pge : 1;			// [7]
+			unsigned pce : 1;			// [8]
+			unsigned osfxsr : 1;		// [9]
+			unsigned osxmmexcpt : 1;	// [10]
+			unsigned umip : 1;			// [11]
+			unsigned reserved1 : 1;		// [12]
+			unsigned vmxe : 1;			// [13]
+			unsigned smxe : 1;			// [14]
+			unsigned reserved2 : 2;		// [15:16]
+			unsigned pcide : 1;			// [17]
+			unsigned osxsave : 1;		// [18]
+			unsigned reserved3 : 1;		// [19]
+			unsigned smep : 1;			// [20]
+			unsigned smap : 1;			// [21]
+			unsigned reserved4 : 16;	// [22:63]
+			unsigned reserved5 : 26;	// [22:63]
+		} bitfield;
+		UINT64 all;
+	} Cr4;
 }
 
 #endif /* __PROCESSOR_CONTEXT_H */

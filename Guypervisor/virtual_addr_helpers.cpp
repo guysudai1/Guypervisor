@@ -3,12 +3,9 @@
 #include <intrin.h>
 
 #include "processor_context.h"
+#include "cpuid.h"
 
-
-#define ADDRESS_WIDTH_CPUID 0x80000008
-
-
-void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
+void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys)
 {
 	/*
 	2. Software can determine a processor’s physical - address width by executing CPUID with 80000008H in EAX.The physical - address
@@ -18,7 +15,7 @@ void acquire_max_phys_addr(PHYSICAL_ADDRESS& maxPhys)
 	processor::CPUInfo currentCpu;
 	unsigned char phys_width;
 
-	__cpuid(reinterpret_cast<int*>(&currentCpu), ADDRESS_WIDTH_CPUID);
+	__cpuid(reinterpret_cast<int*>(&currentCpu), cpuid::kIa32AddressWidth);
 
 	// Acquire bits 7:0
 	phys_width = currentCpu.regs.eax.all & 0xff; 

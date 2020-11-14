@@ -1,8 +1,8 @@
 
 .CODE 
-public is_cpuid_supported
+public IsCPUIdSupported
 
-is_cpuid_supported PROC
+IsCPUIdSupported PROC
 ; OPERATION
 ; pushfq -> save current flags
 ;	pushfq -> Push current flags
@@ -41,6 +41,6 @@ pop rbp
 
 ret
 
-is_cpuid_supported ENDP
+IsCPUIdSupported ENDP
 
 END
