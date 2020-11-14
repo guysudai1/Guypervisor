@@ -47,7 +47,9 @@ NTSTATUS Device::InitDevice(_In_ PDRIVER_OBJECT pDriverObject)
     }
 
     pDriverObject->DriverUnload = Device::DriverUnload;
-   
+
+    this->AddFunctions(pDriverObject);
+
     return status;
 }
 
