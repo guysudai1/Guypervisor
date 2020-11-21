@@ -2,8 +2,6 @@
 
 #include "print.h"
 
-extern Device* g_guypervisor;
-
 
 NTSTATUS Device::AddFunctions(_In_ PDRIVER_OBJECT pDriverObject)
 {
@@ -26,7 +24,7 @@ void Device::DriverUnload(_In_ PDRIVER_OBJECT pDeviceObject)
     UNREFERENCED_PARAMETER(pDeviceObject);
 
     MDbgPrint("Unloading driver...");
-    delete g_guypervisor;
+    delete kGuypervisor;
 }
 
 NTSTATUS Device::InitDevice(_In_ PDRIVER_OBJECT pDriverObject)
@@ -60,13 +58,23 @@ NTSTATUS Device::CreateSymlink()
     NTSTATUS status = STATUS_SUCCESS;
     
     // Delete symlink
-    (void)IoDeleteSymbolicLink(&this->dosDeviceName);
+    status = IoDeleteSymbolicLink(&this->dosDeviceName);
+    
+    if (!NT_SUCCESS(status))
+    {
+        MDbgPrint("Failed to delete symbol link %s with error: %d\n", this->dosDeviceName, status);
+        goto cleanup;
+    }
 
     // Create new symlink
     status = IoCreateSymbolicLink(&this->dosDeviceName, &this->deviceName);
-    if (!NT_SUCCESS(status)) {
-        MDbgPrint("Failed creating a symbolic link with error: %d", status);
+    if (!NT_SUCCESS(status))
+    {
+        MDbgPrint("Failed to create symbol link %s with error: %d\n", this->dosDeviceName, status);
+        goto cleanup;
     }
+
+cleanup:
     return status;
 }
 

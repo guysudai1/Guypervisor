@@ -5,7 +5,6 @@
 
 #include "irp_handlers.h"
 
-
 class Device {
 public:
 
@@ -35,5 +34,7 @@ private:
     UNICODE_STRING dosDeviceName;
     PDEVICE_OBJECT pDeviceObject;
 };
+
+extern Device* kGuypervisor;
 
 #endif /* __DEVICE_H */
