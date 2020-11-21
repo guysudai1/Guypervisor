@@ -3,12 +3,14 @@
 #include "Device.h"
 #include "print.h"
 #include "virtualization.h"
+#include "processor_context.h"
 
 #define DEVICE_NAME L"\\Device\\Guypervisor"
 #define DOS_DEVICE_NAME L"\\DosDevices\\Guypervisor"
 #define HAS_CPUID_FLAG_MASK 1 << 21
 
-Device* g_guypervisor;
+Device* kGuypervisor = nullptr;
+processor::processorContext* processor::kProcessorContext = nullptr;
 
 extern "C" 
 NTSTATUS
@@ -27,7 +29,7 @@ DriverEntry(
     if (!cpuid_supported) {
         MDbgPrint("Failed because your processor doesn\'t support CPUID.\n");
         status = STATUS_NOT_SUPPORTED;
-        return status;
+        goto cleanup;
     }
 
     // Check if the vendor is Intel
@@ -35,7 +37,7 @@ DriverEntry(
     if (!vendor_is_intel) {
         MDbgPrint("Failed because your vendor is not Intel.\n");
         status = STATUS_NOT_SUPPORTED;
-        return status;
+        goto cleanup;
     }
 
     // Check if CPU supports VTx
@@ -46,26 +48,45 @@ DriverEntry(
         return status;
     }
     
-    g_guypervisor =  new Device(DEVICE_NAME, DOS_DEVICE_NAME);
-    status = g_guypervisor->InitDevice(pDriverObject);
+    kGuypervisor = new Device(DEVICE_NAME, DOS_DEVICE_NAME);
+    status = kGuypervisor->InitDevice(pDriverObject);
 
     if (!NT_SUCCESS(status)) {
         MDbgPrint("Could not initiate device!\n");
-        delete g_guypervisor;
-        return status;
+        goto cleanup;
     }
 
     MDbgPrint("Successfully initiated device!\n");
-    // Initialize WDF.
 
     // Create symbolic link to DOS Device
-    status = g_guypervisor->CreateSymlink();
+    status = kGuypervisor->CreateSymlink();
     if (!NT_SUCCESS(status)) {
-        delete g_guypervisor;
-        return status;
+        goto cleanup;
     }
     MDbgPrint("Successfully created symlink!\n");
 
+    // Initialize processor context
+    processor::kProcessorContext = new processor::processorContext;
+    status = processor::InitializeProcessorContext();
+
+    if (!NT_SUCCESS(status))
+    {
+        MDbgPrint("Failed initializing processor context with error: %d\n", status);
+        goto cleanup;
+    }
+
+cleanup:
+    if (!NT_SUCCESS(status)) {
+        if (kGuypervisor != nullptr) 
+        {
+            delete kGuypervisor;
+        }
+
+        if (processor::kProcessorContext != nullptr) 
+        {
+            processor::FreeProcessorContext();
+        }
+    }
 	return status;
 }
 
