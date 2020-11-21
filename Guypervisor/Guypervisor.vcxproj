@@ -178,6 +178,7 @@
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="irp_handlers.cpp" />
+    <ClCompile Include="processor_context.cpp" />
     <ClCompile Include="virtualization.cpp" />
     <ClCompile Include="virtualization_detection.cpp" />
     <ClCompile Include="virtual_addr_helpers.cpp" />
