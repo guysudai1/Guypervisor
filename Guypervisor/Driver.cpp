@@ -45,7 +45,7 @@ DriverEntry(
     if (!supports_vtx) {
         MDbgPrint("Failed because your processor does not support VTx.\n");
         status = STATUS_NOT_SUPPORTED;
-        return status;
+        goto cleanup;
     }
     
     kGuypervisor = new Device(DEVICE_NAME, DOS_DEVICE_NAME);

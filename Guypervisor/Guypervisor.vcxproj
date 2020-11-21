@@ -163,6 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cleanup.h" />
+    <ClInclude Include="custom_status_codes.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="Driver.h" />
     <ClInclude Include="irp_handlers.h" />

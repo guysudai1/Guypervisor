@@ -54,6 +54,9 @@
     <ClInclude Include="msr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="custom_status_codes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">

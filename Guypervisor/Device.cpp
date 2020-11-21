@@ -58,13 +58,7 @@ NTSTATUS Device::CreateSymlink()
     NTSTATUS status = STATUS_SUCCESS;
     
     // Delete symlink
-    status = IoDeleteSymbolicLink(&this->dosDeviceName);
-    
-    if (!NT_SUCCESS(status))
-    {
-        MDbgPrint("Failed to delete symbol link %s with error: %d\n", this->dosDeviceName, status);
-        goto cleanup;
-    }
+    (void)IoDeleteSymbolicLink(&this->dosDeviceName);
 
     // Create new symlink
     status = IoCreateSymbolicLink(&this->dosDeviceName, &this->deviceName);
