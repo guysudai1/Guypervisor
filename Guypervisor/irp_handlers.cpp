@@ -97,11 +97,18 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	UNREFERENCED_PARAMETER(Irp);
 	// Handle IRP_MJ_CLOSE and stop hypervisor
 	NTSTATUS status = STATUS_SUCCESS;
+
 	MDbgPrint("Entered EnterVmxHandler\n");
 
-	virtualization::EnterVmxonMode();
+	if (virtualization::EnterVmxonMode() == false)
+	{
+		MDbgPrint("Instruction VMXON failed!\n");
+		status = STATUS_ILLEGAL_INSTRUCTION;
+		goto cleanup;
+	}
 
 	MDbgPrint("Ended hypervisor\n");
 
+cleanup:
 	return status;
 }
