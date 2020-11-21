@@ -7,14 +7,11 @@
 #undef _NTDDK_
 #include <ntddk.h>
 
-#include "virtual_addr_helpers.h"
 #include "vmcs.h"
 #include "processor_context.h"
 #include "msr.h"
 #include "print.h"
 
-
-constexpr uintptr_t kAlignmentSize = 4 * 1024;// 4KB
 
 namespace virtualization {
 	bool EnterVmxonMode()
@@ -28,10 +25,9 @@ namespace virtualization {
 		processor::Cr4 cr4;
 		processor::FeatureControlMsr controlMsr;
 		processor::VmxBasicMsr basicMsr;
-		PVOID allocatedVMX;
 		ULONG64 physicalAllocatedVMX;
 		unsigned char operationStatus;
-		PHYSICAL_ADDRESS maxPhysical = { 0 };
+		processor::processorContext* context = processor::kProcessorContext;
 
 		// Set CR0 Fixed values
 		cr0.all = __readcr0();
@@ -44,9 +40,6 @@ namespace virtualization {
 		cr4.all |= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr4Fixed0));
 		cr4.all &= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr0Fixed1));
 		__writecr4(cr4.all);
-
-		// Acquire max physical address
-		AcquireMaxPhysicalAddress(maxPhysical);
 
 		// Set CR4.VMXE = 1
 		cr4.all = __readcr4();
@@ -65,31 +58,13 @@ namespace virtualization {
 				   controlMsr.all);
 
 
-		// Allocate 4KB aligned memory (not aligned yet)
-		allocatedVMX = MmAllocateContiguousMemory(sizeof(VMCS) + kAlignmentSize, maxPhysical);
-
-		if (!allocatedVMX) {
-			MDbgPrint("MmAllocateContiguousMemory cannot allocate\n");
-			return false;
-		}
-		RtlZeroMemory(allocatedVMX, sizeof(VMCS) + kAlignmentSize);
-
-		// Align to 4KB
-		allocatedVMX = reinterpret_cast<PVOID>(
-			(reinterpret_cast<uintptr_t>(allocatedVMX) + kAlignmentSize - 1) & ~(kAlignmentSize - 1)
-		);
-
 		// Modify the basic revision ID
 		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
-		reinterpret_cast<VMCS*>(allocatedVMX)->revisionIdentifier = basicMsr.bitfield.revision_id;
+		context->vmxon_region->revisionIdentifier = basicMsr.bitfield.revision_id;
 
-		physicalAllocatedVMX = MmGetPhysicalAddress(allocatedVMX).QuadPart;
+		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmxon_region).QuadPart;
 		operationStatus = __vmx_on(&physicalAllocatedVMX);
-		if (operationStatus != 0) {
-			MDbgPrint("Instruction VMXON failed!\n");
-			return false;
-		}
 
-		return true;
+		return operationStatus != 0;
 	}
 }
