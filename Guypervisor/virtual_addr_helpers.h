@@ -4,5 +4,6 @@
 #include <wdm.h>
 
 void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys);
+PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize);
 
 #endif /* __VIRTUAL_ADDR_HELPERS_H */
