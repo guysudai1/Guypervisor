@@ -39,14 +39,15 @@ PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize
 	if (!allocatedMemory) {
 		MDbgPrint("MmAllocateContiguousMemory cannot allocate %ud bytes with alignment of %ud \n",
 				  size, alignmentSize);
-		return false;
+		return nullptr;
 	}
+
 	RtlZeroMemory(allocatedMemory, size + alignmentSize);
 
 	// Align to 4KB
 	allocatedMemory = reinterpret_cast<PVOID>(
 		(reinterpret_cast<uintptr_t>(allocatedMemory) + alignmentSize - 1) & ~(alignmentSize - 1)
-		);
+	);
 
 	return allocatedMemory;
 }
