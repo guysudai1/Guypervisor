@@ -11,22 +11,25 @@
 #include "processor_context.h"
 #include "msr.h"
 #include "print.h"
+#include "custom_status_codes.h"
 
 
 namespace virtualization {
-	bool EnterVmxonMode()
+	NTSTATUS EnterVmxonMode()
 	{
 		// Set CR4.VMXE [bit 13] = 1
 		// readmsr 0x3A and modify with:
 		//  - Lock bit [0 bit] = 1
 		//  - SMX Operation [1 bit] = 1
 		//  - SMX out of operation [2 bit] = 1
-		processor::ControlRegister cr0;
-		processor::Cr4 cr4;
-		processor::FeatureControlMsr controlMsr;
-		processor::VmxBasicMsr basicMsr;
+		NTSTATUS status = STATUS_SUCCESS;
+
+		processor::ControlRegister cr0{0};
+		processor::Cr4 cr4{0};
+		processor::FeatureControlMsr controlMsr{0};
+		processor::VmxBasicMsr basicMsr{0};
 		ULONG64 physicalAllocatedVMX;
-		unsigned char operationStatus;
+		unsigned char operationStatus = 0;
 		processor::processorContext* context = processor::kProcessorContext;
 
 		// Set CR0 Fixed values
@@ -57,14 +60,52 @@ namespace virtualization {
 		__writemsr(static_cast<unsigned long>(msr::intel_e::kIa32FeatureControl), 
 				   controlMsr.all);
 
-
 		// Modify the basic revision ID
 		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
 		context->vmxon_region->revisionIdentifier = basicMsr.bitfield.revision_id;
 
 		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmxon_region).QuadPart;
 		operationStatus = __vmx_on(&physicalAllocatedVMX);
+		if (operationStatus != 0)
+		{
+			status = STATUS_FAILED_VMXON;
+			goto cleanup;
+		}
 
-		return operationStatus != 0;
+	cleanup:
+		return status;
+	}
+
+	NTSTATUS InitializeVMCS()
+	{
+		NTSTATUS status = STATUS_SUCCESS;
+		ULONG64 physicalAllocatedVMX;
+		processor::VmxBasicMsr basicMsr{ 0 };
+		processor::processorContext* context = processor::kProcessorContext;
+		unsigned char operationStatus = 0;
+
+		// Modify the basic revision ID
+		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
+		context->vmcs_region->revisionIdentifier = basicMsr.bitfield.revision_id;
+
+		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmcs_region).QuadPart;
+		operationStatus = __vmx_vmclear(&physicalAllocatedVMX);
+
+		if (operationStatus != 0)
+		{
+			status = STATUS_FAILED_VMCLEAR;
+			goto cleanup;
+		}
+
+		operationStatus = __vmx_vmptrld(&physicalAllocatedVMX);
+
+		if (operationStatus != 0)
+		{
+			status = STATUS_FAILED_VMPTRLD;
+			goto cleanup;
+		}
+
+	cleanup:
+		return status;
 	}
 }

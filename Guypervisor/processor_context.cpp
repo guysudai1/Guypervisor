@@ -33,7 +33,7 @@ NTSTATUS processor::InitializeProcessorContext()
 	));
 
 	if (kProcessorContext->vmcs_region == nullptr) {
-		status = NT_ERROR(STATUS_FAILED_TO_ALLOCATE_MEMORY);
+		status = STATUS_FAILED_TO_ALLOCATE_MEMORY;
 		goto cleanup;
 	}
 

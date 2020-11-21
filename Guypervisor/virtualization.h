@@ -1,6 +1,8 @@
 #ifndef __VIRTUALIZATION_H
 #define __VIRTUALIZATION_H
 
+#include <wdm.h>
+
 extern "C" bool IsCPUIdSupported(unsigned int mask);
 
 namespace virtualization {
@@ -14,7 +16,11 @@ namespace virtualization {
 	bool VendorIsIntel();
 	bool SupportsVtxOperation();
 
-	bool EnterVmxonMode();
+	/*
+	 * VT-x functions (VMXON / VMPTRLD)
+	 */
+	NTSTATUS EnterVmxonMode();
+	NTSTATUS InitializeVMCS();
 }
 
 #endif /* __VIRTUALIZATION_H */

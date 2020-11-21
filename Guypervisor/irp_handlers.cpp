@@ -1,5 +1,7 @@
 #include "irp_handlers.h"
 
+#include <intrin.h>
+
 #include "print.h"
 
 NTSTATUS irp_handlers::GeneralHandlerIRP(DEVICE_OBJECT *pDeviceObject, IRP *Irp)
@@ -97,18 +99,30 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	UNREFERENCED_PARAMETER(Irp);
 	// Handle IRP_MJ_CLOSE and stop hypervisor
 	NTSTATUS status = STATUS_SUCCESS;
+	bool entered_vmx = false;
 
 	MDbgPrint("Entered EnterVmxHandler\n");
 
-	if (virtualization::EnterVmxonMode() == false)
+	status = virtualization::EnterVmxonMode();
+	if (!NT_SUCCESS(status))
 	{
-		MDbgPrint("Instruction VMXON failed!\n");
-		status = STATUS_ILLEGAL_INSTRUCTION;
+		MDbgPrint("Instruction VMXON failed with status: %d\n", status);
 		goto cleanup;
 	}
 
-	MDbgPrint("Ended hypervisor\n");
+	entered_vmx = true;
+
+	status = virtualization::InitializeVMCS();
+	if (!NT_SUCCESS(status))
+	{
+		MDbgPrint("Initializing VMCS (after VMXON) failed with status: %d\n", status);
+		goto cleanup;
+	}
 
 cleanup:
+	if (!NT_SUCCESS(status) && entered_vmx)
+	{
+		__vmx_off();
+	}
 	return status;
 }
