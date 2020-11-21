@@ -3,10 +3,18 @@
 
 #include "vmcs.h"
 
-struct processorContext {
-	VMCS* vmxon_region;
-	VMCS* vmcs_region;
-};
+namespace processor {
+	struct processorContext {
+		VMCS* vmxon_region;
+		VMCS* vmcs_region;
+		// TODO: Add EPT pointer here
+	};
+
+	NTSTATUS InitializeProcessorContext();
+	void FreeProcessorContext();
+	
+	extern processorContext* kProcessorContext;
+}
 
 namespace processor {
 	typedef union {
