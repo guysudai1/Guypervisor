@@ -108,4 +108,9 @@ namespace virtualization {
 	cleanup:
 		return status;
 	}
+
+	NTSTATUS LaunchGuest()
+	{
+		// TODO: Actually create the vmlaunch function
+	}
 }

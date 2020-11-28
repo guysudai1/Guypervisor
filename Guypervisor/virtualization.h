@@ -17,10 +17,11 @@ namespace virtualization {
 	bool SupportsVtxOperation();
 
 	/*
-	 * VT-x functions (VMXON / VMPTRLD)
+	 * VT-x functions (VMXON / VMPTRLD / VMLAUNCH)
 	 */
 	NTSTATUS EnterVmxonMode();
 	NTSTATUS InitializeVMCS();
+	NTSTATUS LaunchGuest();
 }
 
 #endif /* __VIRTUALIZATION_H */

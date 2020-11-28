@@ -3,7 +3,7 @@
 
 #include <wdm.h>
 
-struct AccessRights {
+typedef struct {
 	UINT32 segmentType : 3;
 	// 0 = system, 1 = code or data
 	UINT32 descriptorType : 1;
@@ -36,21 +36,21 @@ struct AccessRights {
 	UINT32 segmentUnusable : 1;
 
 	UINT32 reserved3 : 16;
-};
+} AccessRights;
 
-struct descriptorTableRegister {
+typedef struct {
 	UINT64 baseAddress;
 	UINT32 limit;
-};
+} descriptorTableRegister;
 
-struct segmentRegister {
+typedef struct {
 	UINT16 selector;
 	UINT64 baseAddress;
 	UINT32 segmentLimit; // In bytes
 	AccessRights accessRights;
-};
+} segmentRegister;
 
-struct InterruptibilityState {
+typedef struct {
 
 	// 0 = Doesn't block interrupts
 	// 1 = Blocks interrupts for one instruction after its execution.
@@ -64,7 +64,8 @@ struct InterruptibilityState {
 	// 1 = Blocks SMIs in effect
 	UINT32 blockedSMI : 1;
 
-	// 
+	// 0 = Doesn't block NMI
+	// 1 = Blocks NMIs in effect
 	UINT32 blockedNMI : 1;
 
 	// VM exit sets this bit as 1 to indicate the VM 
@@ -72,21 +73,21 @@ struct InterruptibilityState {
 	UINT32 enclaveInterruption : 1;
 
 	UINT32 reserved : 27;
-};
+} InterruptibilityState;
 
-struct PDPTE {
+typedef struct {
 	UINT64 pdpte0;
 	UINT64 pdpte1;
 	UINT64 pdpte2;
 	UINT64 pdpte3;
-};
+} PDPTE;
 
 /*
 
 VMCS Structure:
 
- - Guest State
- - Host State
+ - Guest State (Saves data about the guest)
+ - Host State  (Saves data about the host)
  - VM-execution control
  - VM-exit control
  - VM-entry control
@@ -94,7 +95,10 @@ VMCS Structure:
 
 */
 
-struct GuestState {
+typedef struct  {
+	/*
+	 *  Registers saved in the guest state
+	 */
 	struct {
 		struct {
 			UINT64 cr0;
@@ -169,9 +173,9 @@ struct GuestState {
 
 		unsigned short PMLIndex;
 	} guestNonRegisterState;
-};
+} GuestState;
 
-struct HostState {
+typedef struct {
 	struct {
 		UINT64 cr0;
 		UINT64 cr3;
@@ -209,9 +213,9 @@ struct HostState {
 		UINT64 IA32_PAT;
 		UINT64 IA32_EFER;
 	} modelSpecificRegisters;
-};
+} HostState;
 
-struct PinBasedControls {
+typedef struct {
 	// If this control is 1, external interrupts cause VM exits
 	UINT32 externalInterruptExit : 1;
 
@@ -232,9 +236,9 @@ struct PinBasedControls {
 	UINT32 processInterrupts : 1;
 
 	UINT32 reserved3 : 25;
-};
+} PinBasedControls;
 
-struct VMExecCtrlFields
+typedef struct
 {
 	UINT32 reserved1 : 2;
 
@@ -302,9 +306,9 @@ struct VMExecCtrlFields
 
 	// Activate secondary controls (whether to use a second control structure) - we will use this
 	UINT32 secondControls : 1;
-};
+} VMExecCtrlFields;
 
-struct SecondaryVMExecCtrls {
+typedef struct {
 	UINT32 virtualizeApic : 1;
 	UINT32 enableEPT : 1;
 
@@ -369,25 +373,25 @@ struct SecondaryVMExecCtrls {
 	UINT32 useTSCScaling : 1;
 
 	UINT32 reserved3 : 6;
-};
+} SecondaryVMExecCtrls;
 
-struct TimeScale {
+typedef struct {
 	// Enabled if the "RDTSC Exiting " CTRL is 0
 	UINT64 tscOffset; // Enabled if the use TSC offseting exists
 	UINT64 tscScaling; // Enabled if the use TSC scaling exists
-};
+} TimeScale;
 
-typedef char bitmap[4 * 1024];
+typedef struct { char _bitmap[4 * 1024]; } Bitmap;
 
-struct IOBitmap {
+typedef struct {
 	/* 
 	A logical processor uses these bitmaps if and 
 	only if the “use I/O bitmaps”  */
-	bitmap A;
-	bitmap B;
-};
+	Bitmap A;
+	Bitmap B;
+} IOBitmap;
 
-struct EPTP {
+typedef struct {
 	/*
 	Possible memory types:
 	 *	0 = Uncacheable
@@ -408,9 +412,9 @@ struct EPTP {
 	//  N is the physical-address width supported by the logical processor. Software can determine a processor’s physical-address width by
 	// executing CPUID with 80000008H in EAX.The physical - address width is returned in bits 7:0 of EAX.
 	UINT64 addressPlusReserved : 52;
-};
+} EPTP;
 
-struct VMExitCtrlFields {
+typedef struct {
 	UINT32 reserved1 : 2;
 
 	UINT32 saveDebugCtrls : 1;
@@ -452,9 +456,9 @@ struct VMExitCtrlFields {
 	UINT32 concealVMExitPt : 1;
 
 	UINT32 reserved6 : 7;
-};
+} VMExitCtrlFields;
 
-struct VMEntryCtrlFields {
+typedef struct {
 	UINT32 reserved1 : 2;
 
 	UINT32 loadDebugCtrls : 1;
@@ -482,13 +486,12 @@ struct VMEntryCtrlFields {
 	UINT32 concealVMEntryPt : 1;
 
 	UINT32 reserved4 : 14;
-
-};
+} VMEntryCtrlFields;
 
 
 /* BASIC VM EXIT INFORMATION */
 
-struct ExitReason{
+typedef struct {
 	UINT32 basicExitReason : 16;
 
 	UINT32 reserved1: 11;
@@ -503,9 +506,9 @@ struct ExitReason{
 	// 0 = true VM exit
 	// 1 = VM Entry Failure
 	UINT32 VMEntryFailure : 1;
-};
+} ExitReason;
 
-struct BasicVMExitInformation {
+typedef struct {
 	ExitReason exitReason;
 
 	/*
@@ -528,7 +531,7 @@ struct BasicVMExitInformation {
 
 	//  This field is used VM exits due to EPT violations and EPT misconfigurations. 
 	UINT64 guestPhysicalAddress;
-};
+} BasicVMExitInformation;
 
 /* BASIC VM EXIT INFORMATION END */
 
@@ -538,7 +541,7 @@ struct BasicVMExitInformation {
 This field receives basic information associated with the event
 	causing the VM exit
 */
-struct VMExitInterruptionInformation {
+typedef struct {
 	UINT32 vectorOfInterrupt: 8;
 
 	/*
@@ -559,24 +562,24 @@ struct VMExitInterruptionInformation {
 
 	UINT32 reserved1 : 18;
 	UINT32 valid : 1;
-};
+} VMExitInterruptionInformation;
 
 /*
 Event-specific information is provided for VM exits due to the following vectored events: exceptions (including
 those generated by the instructions INT3, INTO, BOUND, and UD2); external interrupts that occur while the
 “acknowledge interrupt on exit” VM-exit control is 1; and non-maskable interrupts (NMIs).
 */
-struct VMExitVectoredEvents {
+typedef struct {
 	VMExitInterruptionInformation exitInterruptionInformation;
 	UINT32 interruptionErrorCode;
-};
+} VMExitVectoredEvents;
 
 /* EXIT VECTORED EVENTS END */
 
 
 /* EXIT OCCUR DURING EVENT DELIVERY */
 
-class IDTVectoringInformation {
+typedef struct {
 	UINT32 vectorOfInterrupt : 8;
 
 	/*
@@ -598,21 +601,21 @@ class IDTVectoringInformation {
 
 	UINT32 reserved1 : 18;
 	UINT32 valid : 1;
-};
+} IDTVectoringInformation;
 
 /*
 Additional information is provided for VM exits that occur during event delivery in VMX non-root operation
 */
-struct VMExitDuringEventDelivery {
+typedef struct {
 	IDTVectoringInformation idtInformation;
 	UINT32 idtErrorCode;
-};
+} VMExitDuringEventDelivery;
 
 /* EXIT OCCUR DURING EVENT DELIVERY END */
 
 /* EXIT DUE TO INSTRUCTION EXECUTION */
 
-struct VMExitDuringInstruction {
+typedef struct {
 	UINT32 instructionLength;
 	
 	/*
@@ -632,28 +635,36 @@ struct VMExitDuringInstruction {
 	UINT64 ioRsi;
 	UINT64 ioRdi;
 	UINT64 ioRip;
-};
+} VMExitDuringInstruction;
 
 /* EXIT DUE TO INSTRUCTION EXECUTION EXIT */
 
-struct VMExitInformationFields {
+typedef struct {
 	BasicVMExitInformation basicInformation;
 	VMExitVectoredEvents vectoredEvents;
 	VMExitDuringEventDelivery eventDeliveryInformation;
 	VMExitDuringInstruction instructionInformation;
 	UINT32 instructionErrorField;
-};
+} VMExitInformationFields;
 
-struct VMCS {
+typedef struct {
+	// Revision identifier should be taken from the kIa32VmxBasic MSR
 	UINT32 revisionIdentifier : 31;
+	// Should be 1 if the VMCS is a shadow VMCS
 	UINT32 shadowVMCS : 1;
 
+	/*
+	 *   The contents of these bits do not control processor operation in any way. 
+	 *   A logical processor writes a non-zero value into these bits if a VMX abort 
+	 *   occurs (see Section 27.7). Software may also write into this field
+	 */
 	UINT32 abortIndicator;
 
 	GuestState guestState;
 	HostState hostState;
 	
 	VMExecCtrlFields executionCtrl;
+	/* TODO: Delete this comment later
 	SecondaryVMExecCtrls secondExecCtrl;
 
 	UINT32 exceptionBitmap;
@@ -665,10 +676,11 @@ struct VMCS {
 	EPTP eptPtr;
 	
 	UINT16 vpid;
-
+		TODO: Delete this comment later
+	*/
 	VMExitCtrlFields exitCtrl;
 	VMEntryCtrlFields entryCtrl;
 	VMExitInformationFields exitInformation;
-};
+} VMCS;
 
 #endif /* __VMCS_H */

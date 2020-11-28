@@ -119,6 +119,14 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 		goto cleanup;
 	}
 
+	// VMLaunch here
+	status = virtualization::LaunchGuest();
+	if (!NT_SUCCESS(status))
+	{
+		MDbgPrint("VMLaunch (after VMPTRLD) failed with status: %d\n", status);
+		goto cleanup;
+	}
+
 cleanup:
 	if (!NT_SUCCESS(status) && entered_vmx)
 	{
