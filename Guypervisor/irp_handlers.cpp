@@ -78,7 +78,7 @@ NTSTATUS irp_handlers::IOCTLHandlerIRP(DEVICE_OBJECT *pDeviceObject, IRP *Irp)
 
 	IrpStack = IoGetCurrentIrpStackLocation(Irp);
 	switch (IrpStack->Parameters.DeviceIoControl.IoControlCode) {
-		case ENTER_VMX:
+		case IOCTL_ENTER_VMX:
 			status = irp_handlers::ioctl::EnterVmxHandler(
 				pDeviceObject,
 						Irp

@@ -5,10 +5,10 @@
 
 #include "virtualization.h"
 
-#define ENTER_VMX CTL_CODE(FILE_DEVICE_UNKNOWN,\
-                           virtualization::IoctlCodes::ENTER_VMX,\
-                           METHOD_BUFFERED,\
-                           FILE_ANY_ACCESS)
+#define IOCTL_ENTER_VMX CTL_CODE(FILE_DEVICE_UNKNOWN,\
+                                 virtualization::IoctlCodes::kEnterVmx,\
+                                 METHOD_BUFFERED,\
+                                 FILE_ANY_ACCESS)
 
 namespace irp_handlers {
     
