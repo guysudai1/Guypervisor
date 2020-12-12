@@ -683,4 +683,16 @@ typedef struct {
 	VMExitInformationFields exitInformation;
 } VMCS;
 
+typedef union _FieldEncoding {
+	struct {
+		UINT32 access_type : 1;
+		UINT32 index : 8;
+		UINT32 component_type : 2;
+		UINT32 reserved1 : 1;  // Must be set to zero
+		UINT32 field_width : 2;
+		UINT32 reserved2 : 18; // Must be set to zero
+	} fields;
+	SIZE_T all;
+} FieldEncoding;
+
 #endif /* __VMCS_H */
