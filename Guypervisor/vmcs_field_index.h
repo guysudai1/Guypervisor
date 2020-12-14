@@ -239,9 +239,183 @@ typedef enum vmcs_field_encoding {
 	// Exists if: 
 	//   * 1-setting of the “enable ENCLV exiting” VM-execution control.
 	kControlEnclvExitingBitmapFull = 0x00002036,
-	kControlEnclvExitingBitmapHigh = 0x00002037
+	kControlEnclvExitingBitmapHigh = 0x00002037,
 
-	// TODO: Continue creating struct
-	// TODO: Continue creating struct
-	// TODO: Continue creating struct
+	/**
+	 * 64 bit Guest Fields (Read Only)
+	 */
+
+	 // Index: 0x000000000
+	 // Exists if: 
+	 //   * 1-setting of the "enable EPT” VM-execution control.
+	kGuestPhysicalAddrFull = 0x00002400,
+	kGuestPhysicalAddrHigh = 0x00002401,
+
+	/**
+	* 64 bit Guest Fields
+	*/
+
+	// Index: 0x000000000
+	kGuestVmcsLinkPtrFull = 0x00002800,
+	kGuestVmcsLinkPtrHigh = 0x00002801,
+
+    // Index: 0x000000001
+    kGuestIa32DebugCtlFull = 0x00002802,
+    kGuestIa32DebugCtlHigh = 0x00002803,
+
+    // Index: 0x000000002
+    // Exists if:
+    //   * 1-setting of the "load IA32_PAT" VM-entry control or that of the "save IA32_PAT" VM-exit control.
+    kGuestIa32PatFull = 0x00002804,
+    kGuestIa32PatHigh = 0x00002805,
+
+    // Index: 0x000000003
+    // Exists if:
+    //   * 1-setting of the "load IA32_EFER" VM-entry control or that of the "save IA32_EFER" VM-exit control.
+    kGuestIa32EferFull = 0x00002806,
+    kGuestIa32EferHigh = 0x00002807,
+
+    // Index: 0x000000004
+    // Exists if:
+    //   * 1-setting of the "load IA32_PERF_GLOBAL_CTRL" VM-entry control.
+    kGuestIa32PerfGlobalCtrlFull = 0x00002808,
+    kGuestIa32PerfGlobalCtrlHigh = 0x00002809,
+
+    // Index: 0x000000005
+    // Exists if:
+    //   * 1-setting of the "enable EPT" VM-execution control.
+    kGuestPdpte0Full = 0x0000280A,
+    kGuestPdpte0High = 0x0000280B,
+
+    // Index: 0x000000006
+    // Exists if:
+    //   * 1-setting of the "enable EPT" VM-execution control.
+    kGuestPdpte1Full = 0x0000280C,
+    kGuestPdpte1High = 0x0000280D,
+
+    // Index: 0x000000007
+    // Exists if:
+    //   * 1-setting of the "enable EPT" VM-execution control.
+    kGuestPdpte2Full = 0x0000280E,
+    kGuestPdpte2High = 0x0000280F,
+
+    // Index: 0x000000008
+    // Exists if:
+    //   * 1-setting of the "enable EPT" VM-execution control.
+    kGuestPdpte3Full = 0x00002810,
+    kGuestPdpte3High = 0x00002811,
+
+    // Index: 0x000000009
+    // Exists if:
+    //   * 1-setting of the “load IA32_BNDCFGS” VM-entry control or that of the “clear IA32_BNDCFGS” VM-exit control.
+    kGuestIa32BndcfgsFull = 0x00002812,
+    kGuestIa32BndcfgsHigh = 0x00002813,
+
+    // Index: 0x00000000A
+    // Exists if:
+    //   * 1-setting of the “load IA32_RTIT_CTL” VM-entry control or that of the “clear IA32_RTIT_CTL” VM-exit control.
+    kGuestIa32RtitCtlFull = 0x00002814,
+    kGuestIa32RtitCtlHigh = 0x00002815,
+
+    // Index: 0x00000000B
+    // Exists if:
+    //   * 1-setting of the “load PKRS” VM-entry control.
+    kGuestIa32PkrsFull = 0x00002816,
+    kGuestIa32PkrsHigh = 0x00002817,
+
+    /**
+     * 64 bit Host State Fields
+     */
+
+    // Index: 0x000000000
+    // Exists if:
+    //   * 1-setting of the "load IA32_PAT" VM-exit control.
+    kHostIa32PatFull = 0x00002C00,
+    kHostIa32PatHigh = 0x00002C01,
+
+    // Index: 0x000000001
+    // Exists if:
+    //   * 1-setting of the "load IA32_EFER" VM-exit control.
+    kHostIa32EferFull = 0x00002C02,
+    kHostIa32EferHigh = 0x00002C03,
+
+    // Index: 0x000000002
+    // Exists if:
+    //   * 1-setting of the "load IA32_PERF_GLOBAL_CTRL" VM-exit control.
+    kHostIa32PerfGlobalCtrlFull = 0x00002C04,
+    kHostIa32PerfGlobalCtrlHigh = 0x00002C05,
+
+    // Index: 0x000000003
+    // Exists if:
+    //   * 1-setting of the "load PKRS" VM-exit control.
+    kHostIa32PkrsFull = 0x00002C06,
+    kHostIa32PkrsHigh = 0x00002C07,
+
+    /**
+     * 32 bit Control Fields
+     */
+
+    // Index: 0x000000000
+    kControlPinBasedVmExecutionControls = 0x00004000,
+
+    // Index: 0x000000001
+    kControlPrimaryProcessorVmExecutionControls = 0x00004002,
+
+    // Index: 0x000000002
+    kControlExceptionBitmap = 0x00004004,
+
+    // Index: 0x000000003
+    kControlPageFaultErrorCodeMask = 0x00004006,
+
+    // Index: 0x000000004
+    kControlPageFaultErrorCodeMatch = 0x00004008,
+
+    // Index: 0x000000005
+    kControlCr3TargetCount = 0x0000400A,
+
+    // Index: 0x000000006
+    kControlVmExitControls = 0x0000400C,
+
+    // Index: 0x000000007
+    kControlVmExitMsrStoreCount = 0x0000400E,
+
+    // Index: 0x000000008
+    kControlVmExitMsrLoadCount = 0x00004010,
+
+    // Index: 0x000000009
+    kControlVmEntryControls = 0x00004012,
+
+    // Index: 0x00000000A
+    kControlVmEntryMsrLoadCount = 0x00004014,
+
+    // Index: 0x00000000B
+    kControlVmEntryInterruptionInformationField = 0x00004016,
+
+    // Index: 0x00000000C
+    kControlVmEntryExceptionErrorCode = 0x00004018,
+
+    // Index: 0x00000000D
+    kControlVmEntryInstructionLength = 0x0000401A,
+
+    // Index: 0x00000000E
+    // Exists if:
+    //   * 1-setting of the “use TPR shadow” VM-execution control.
+    kControlTprThreshold = 0x0000401C,
+
+    // Index: 0x00000000F
+    // Exists if:
+    //   * 1-setting of the “activate secondary controls” VM-execution control.
+    kControlSecondaryProcessorVmExecutionControls = 0x0000401E,
+
+    // Index: 0x000000010
+    // Exists if:
+    //   * 1-setting of the “PAUSE-loop exiting” VM-execution control.
+    kControlPleGap = 0x00004020,
+
+    // Index: 0x000000011
+    // Exists if:
+    //   * 1-setting of the “PAUSE-loop exiting” VM-execution control.
+    kControlPleWindow = 0x00004022,
+
+
 } vmcs_field_encoding_e;
