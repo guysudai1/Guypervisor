@@ -4,7 +4,7 @@
  * VMCS Field encoding enumerator. 
  * 
  * Every component of the VMCS is encoded by a 32-bit field that can be used by VMREAD and VMWRITE
- * These field encodings can be found in volume 3d APPENDIX B part 1
+ * These field encodings can be found in volume 3d APPENDIX B part 1 (page 4517)
  */
 typedef enum vmcs_field_encoding {
 	/**
@@ -13,17 +13,17 @@ typedef enum vmcs_field_encoding {
 
 	// Index: 0x000000000
 	// Exists if: 
-	//   * 1-setting of the “enable VPID” VM-execution control. 
+	//   * 1-setting of the ï¿½enable VPIDï¿½ VM-execution control. 
 	kControlVPID = 0x00000000, 
 
 	// Index: 0x000000001
 	// Exists if: 
-	//   * 1-setting of the “process posted interrupts” VM-execution control. 
+	//   * 1-setting of the ï¿½process posted interruptsï¿½ VM-execution control. 
 	kControlPostedInterruptNotificationVector = 0x00000002,
 
 	// Index: 0x000000002
 	// Exists if: 
-	//   * 1-setting of the “EPT-violation #VE” VM-execution control.
+	//   * 1-setting of the ï¿½EPT-violation #VEï¿½ VM-execution control.
 	kControlEPTPIndex = 0x00000004,
 
 	/**
@@ -56,12 +56,12 @@ typedef enum vmcs_field_encoding {
 
 	// Index: 0x000000008
 	// Exists if: 
-	//   * 1-setting of the “virtual-interrupt delivery” VM-execution control.
+	//   * 1-setting of the ï¿½virtual-interrupt deliveryï¿½ VM-execution control.
 	kGuestInterruptStatus = 0x00000810,
 
 	// Index: 0x000000009
 	// Exists if: 
-	//   * 1-setting of the “enable PML” VM-execution control.
+	//   * 1-setting of the ï¿½enable PMLï¿½ VM-execution control.
 	kGuestPmlIndex = 0x00000812,
 
 	/**
@@ -103,7 +103,7 @@ typedef enum vmcs_field_encoding {
 
 	// Index: 0x000000002
 	// Exists if: 
-	//   * 1-setting of the “use MSR bitmaps” VM-execution control.
+	//   * 1-setting of the ï¿½use MSR bitmapsï¿½ VM-execution control.
 	kControlAddressMsrBitmapsFull = 0x00002004,
 	kControlAddressMsrBitmapsHigh = 0x00002005,
 
@@ -125,7 +125,7 @@ typedef enum vmcs_field_encoding {
 
 	// Index: 0x000000007
 	// Exists if: 
-	//   * 1-setting of the “enable PML” VM-execution control.
+	//   * 1-setting of the ï¿½enable PMLï¿½ VM-execution control.
 	kControlPmlAddressFull = 0x0000200E,
 	kControlPmlAddressHigh = 0x0000200F,
 
@@ -135,119 +135,119 @@ typedef enum vmcs_field_encoding {
 
 	// Index: 0x000000009
 	// Exists if: 
-	//   * 1-setting of the “use TPR shadow” VM-execution control.
+	//   * 1-setting of the ï¿½use TPR shadowï¿½ VM-execution control.
 	kControlVirtualApicAddrFull = 0x00002012,
 	kControlVirtualApicAddrHigh = 0x00002013,
 
 	// Index: 0x00000000A
 	// Exists if: 
-	//   * 1-setting of the “virtualize APIC accesses” VM-execution control.
+	//   * 1-setting of the ï¿½virtualize APIC accessesï¿½ VM-execution control.
 	kControlApicAccessAddrFull = 0x00002014,
 	kControlApicAccessAddrHigh = 0x00002015,
 
 	// Index: 0x00000000B
 	// Exists if: 
-	//   * 1-setting of the “process posted interrupts” VM-execution control.
+	//   * 1-setting of the ï¿½process posted interruptsï¿½ VM-execution control.
 	kControlPostedInterruptDescriptorAddrFull = 0x00002016,
 	kControlPostedInterruptDescriptorAddrHigh = 0x00002017,
 
 	// Index: 0x00000000C
 	// Exists if: 
-	//   * 1-setting of the “enable VM functions” VM-execution control.
+	//   * 1-setting of the ï¿½enable VM functionsï¿½ VM-execution control.
 	kControlVmFunctionControlsFull = 0x00002018,
 	kControlVmFunctionControlsHigh = 0x00002019,
 
 	// Index: 0x00000000D
 	// Exists if: 
-	//   * 1-setting of the “enable EPT” VM-execution control.
+	//   * 1-setting of the ï¿½enable EPTï¿½ VM-execution control.
 	kControlEPTPFull = 0x0000201A,
 	kControlEPTPHigh = 0x0000201B,
 
 	// Index: 0x00000000E
 	// Exists if: 
-	//   * 1-setting of the “virtual-interrupt delivery” VM-execution control.
+	//   * 1-setting of the ï¿½virtual-interrupt deliveryï¿½ VM-execution control.
 	kControlEoiExitBitmap0Full = 0x0000201C,
 	kControlEoiExitBitmap0High = 0x0000201D,
 
 	// Index: 0x00000000F
 	// Exists if: 
-	//   * 1-setting of the “virtual-interrupt delivery” VM-execution control.
+	//   * 1-setting of the ï¿½virtual-interrupt deliveryï¿½ VM-execution control.
 	kControlEoiExitBitmap1Full = 0x0000201E,
 	kControlEoiExitBitmap1High = 0x0000201F,
 
 	// Index: 0x000000010
 	// Exists if: 
-	//   * 1-setting of the “virtual-interrupt delivery” VM-execution control.
+	//   * 1-setting of the ï¿½virtual-interrupt deliveryï¿½ VM-execution control.
 	kControlEoiExitBitmap2Full = 0x00002020,
 	kControlEoiExitBitmap2High = 0x00002021,
 
 	// Index: 0x000000011
 	// Exists if: 
-	//   * 1-setting of the “virtual-interrupt delivery” VM-execution control.
+	//   * 1-setting of the ï¿½virtual-interrupt deliveryï¿½ VM-execution control.
 	kControlEoiExitBitmap3Full = 0x00002022,
 	kControlEoiExitBitmap3High = 0x00002023,
 
 	// Index: 0x000000012
 	// Exists if: 
-	//   * 1-setting of the “EPTP switching” VM-function control.
+	//   * 1-setting of the ï¿½EPTP switchingï¿½ VM-function control.
 	kControlEptpListAddrFull = 0x00002024,
 	kControlEptpListAddrHigh = 0x00002025,
 
 	// Index: 0x000000013
 	// Exists if: 
-	//   * 1-setting of the “VMCS shadowing” VM-execution control.
+	//   * 1-setting of the ï¿½VMCS shadowingï¿½ VM-execution control.
 	kControlVmreadBitmapAddrFull = 0x00002026,
 	kControlVmreadBitmapAddrHigh = 0x00002027,
 
 	// Index: 0x000000014
 	// Exists if: 
-	//   * 1-setting of the “VMCS shadowing” VM-execution control.
+	//   * 1-setting of the ï¿½VMCS shadowingï¿½ VM-execution control.
 	kControlVmwriteBitmapAddrFull = 0x00002028,
 	kControlVmwriteBitmapAddrHigh = 0x00002029,
 
 	// Index: 0x000000015
 	// Exists if: 
-	//   * 1-setting of the “EPT-violation #VE” VM-execution control.
+	//   * 1-setting of the ï¿½EPT-violation #VEï¿½ VM-execution control.
 	kControlVirtualizationExceptionInformationAddrFull = 0x0000202A,
 	kControlVirtualizationExceptionInformationAddrHigh = 0x0000202B,
 
 	// Index: 0x000000016
 	// Exists if: 
-	//   * 1-setting of the “enable XSAVES/XRSTORS” VM-execution control.
+	//   * 1-setting of the ï¿½enable XSAVES/XRSTORSï¿½ VM-execution control.
 	kControlXssExitingBitmapFull = 0x0000202C,
 	kControlXssExitingBitmapHigh = 0x0000202D,
 
 	// Index: 0x000000017
 	// Exists if: 
-	//   * 1-setting of the “enable ENCLS exiting” VM-execution control.
+	//   * 1-setting of the ï¿½enable ENCLS exitingï¿½ VM-execution control.
 	kControlEnclsExitingBitmapFull = 0x0000202E,
 	kControlEnclsExitingBitmapHigh = 0x0000202F,
 
 	// Index: 0x000000018
 	// Exists if: 
-	//   * 1-setting of the “sub-page write permissions for EPT” VM-execution control.
+	//   * 1-setting of the ï¿½sub-page write permissions for EPTï¿½ VM-execution control.
 	kControlSubpagePermissionTablePtrFull = 0x00002030,
 	kControlSubpagePermissionTablePtrHigh = 0x00002031,
 
 	// Index: 0x000000019
 	// Exists if: 
-	//   * 1-setting of the “use TSC scaling” VM-execution control.
+	//   * 1-setting of the ï¿½use TSC scalingï¿½ VM-execution control.
 	kControlTscMultiplierFull = 0x00002032,
 	kControlTscMultiplierHigh = 0x00002033,
 
 	// Index: 0x00000001A
 	// Exists if: 
-	//   * 1-setting of the “enable ENCLV exiting” VM-execution control.
+	//   * 1-setting of the ï¿½enable ENCLV exitingï¿½ VM-execution control.
 	kControlEnclvExitingBitmapFull = 0x00002036,
 	kControlEnclvExitingBitmapHigh = 0x00002037,
 
 	/**
-	 * 64 bit Guest Fields (Read Only)
+	 * 64 bit VM Exit Information (Read Only)
 	 */
 
 	 // Index: 0x000000000
 	 // Exists if: 
-	 //   * 1-setting of the "enable EPT” VM-execution control.
+	 //   * 1-setting of the "enable EPTï¿½ VM-execution control.
 	kGuestPhysicalAddrFull = 0x00002400,
 	kGuestPhysicalAddrHigh = 0x00002401,
 
@@ -307,19 +307,19 @@ typedef enum vmcs_field_encoding {
 
     // Index: 0x000000009
     // Exists if:
-    //   * 1-setting of the “load IA32_BNDCFGS” VM-entry control or that of the “clear IA32_BNDCFGS” VM-exit control.
+    //   * 1-setting of the ï¿½load IA32_BNDCFGSï¿½ VM-entry control or that of the ï¿½clear IA32_BNDCFGSï¿½ VM-exit control.
     kGuestIa32BndcfgsFull = 0x00002812,
     kGuestIa32BndcfgsHigh = 0x00002813,
 
     // Index: 0x00000000A
     // Exists if:
-    //   * 1-setting of the “load IA32_RTIT_CTL” VM-entry control or that of the “clear IA32_RTIT_CTL” VM-exit control.
+    //   * 1-setting of the ï¿½load IA32_RTIT_CTLï¿½ VM-entry control or that of the ï¿½clear IA32_RTIT_CTLï¿½ VM-exit control.
     kGuestIa32RtitCtlFull = 0x00002814,
     kGuestIa32RtitCtlHigh = 0x00002815,
 
     // Index: 0x00000000B
     // Exists if:
-    //   * 1-setting of the “load PKRS” VM-entry control.
+    //   * 1-setting of the ï¿½load PKRSï¿½ VM-entry control.
     kGuestIa32PkrsFull = 0x00002816,
     kGuestIa32PkrsHigh = 0x00002817,
 
@@ -399,23 +399,125 @@ typedef enum vmcs_field_encoding {
 
     // Index: 0x00000000E
     // Exists if:
-    //   * 1-setting of the “use TPR shadow” VM-execution control.
+    //   * 1-setting of the ï¿½use TPR shadowï¿½ VM-execution control.
     kControlTprThreshold = 0x0000401C,
 
     // Index: 0x00000000F
     // Exists if:
-    //   * 1-setting of the “activate secondary controls” VM-execution control.
+    //   * 1-setting of the ï¿½activate secondary controlsï¿½ VM-execution control.
     kControlSecondaryProcessorVmExecutionControls = 0x0000401E,
 
     // Index: 0x000000010
     // Exists if:
-    //   * 1-setting of the “PAUSE-loop exiting” VM-execution control.
+    //   * 1-setting of the ï¿½PAUSE-loop exitingï¿½ VM-execution control.
     kControlPleGap = 0x00004020,
 
     // Index: 0x000000011
     // Exists if:
-    //   * 1-setting of the “PAUSE-loop exiting” VM-execution control.
+    //   * 1-setting of the ï¿½PAUSE-loop exitingï¿½ VM-execution control.
     kControlPleWindow = 0x00004022,
 
+    /**
+     * 32 bit VM Exit Information (Read Only)
+     */
+
+    // Index: 0x000000000
+    kVmInstructionError = 0x00004400,
+
+    // Index: 0x000000001
+    kExitReason = 0x00004402,
+
+    // Index: 0x000000002
+    kVmExitInterruptionInformation = 0x00004404,
+
+    // Index: 0x000000003
+    kVmExitInterruptionErrorCode = 0x00004406,
+
+    // Index: 0x000000004
+    kIdtVectoringInformationField = 0x00004408,
+
+    // Index: 0x000000005
+    kIdtVectoringErrorCode = 0x0000440A,
+
+    // Index: 0x000000005
+    kVmExitInstructionLength = 0x0000440C,
+
+    // Index: 0x000000006
+    kVmExitInstructionInformation = 0x0000440E,
+
+    /**
+     * 32 bit Guest State Fields
+     */
+
+    // Index: 0x00000000
+    kGuestEsLimit = 0x00004800,
+
+    // Index: 0x00000001
+    kGuestCsLimit = 0x00004802,
+
+    // Index: 0x00000002
+    kGuestSsLimit = 0x00004804,
+
+    // Index: 0x00000003
+    kGuestDsLimit = 0x00004806,
+
+    // Index: 0x00000004
+    kGuestFsLimit = 0x00004808,
+
+    // Index: 0x00000005
+    kGuestGsLimit = 0x0000480A,
+
+    // Index: 0x00000006
+    kGuestLdtrLimit = 0x0000480C,
+
+    // Index: 0x00000007
+    kGuestTrLimit = 0x0000480E,
+
+    // Index: 0x00000008
+    kGuestGdtrLimit = 0x00004810,
+
+    // Index: 0x00000009
+    kGuestIdtrLimit = 0x00004812,
+
+    // Index: 0x0000000A
+    kGuestEsAccessRights = 0x00004814,
+
+    // Index: 0x0000000B
+    kGuestCsAccessRights = 0x00004816,
+
+    // Index: 0x0000000C
+    kGuestSsAccessRights = 0x00004818,
+
+    // Index: 0x0000000D
+    kGuestDsAccessRights = 0x0000481A,
+
+    // Index: 0x0000000E
+    kGuestFsAccessRights = 0x0000481C,
+
+    // Index: 0x0000000F
+    kGuestGsAccessRights = 0x0000481E,
+
+    // Index: 0x00000010
+    kGuestLdtrAccessRights = 0x00004820,
+
+    // Index: 0x00000011
+    kGuestTrAccessRights = 0x00004822,
+
+    // Index: 0x00000012
+    kGuestInterruptibilityState = 0x00004824,
+
+    // Index: 0x00000013
+    kGuestActivityState = 0x00004826,
+
+    // Index: 0x00000014
+    kGuestSmbase = 0x00004828,
+
+    // Index: 0x00000015
+    kGuestIa32SysenterCs = 0x0000482A,
+
+    // Index: 0x00000015
+    // Exists if:
+    //   * 1-setting of the "activate VMX-preemption timer" VM-execution control.
+    kGuestVmxPreemptionTimerValue = 0x0000482C,
 
 } vmcs_field_encoding_e;
