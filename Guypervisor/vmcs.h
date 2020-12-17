@@ -3,6 +3,8 @@
 
 #include <wdm.h>
 
+#include "processor.h"
+
 typedef struct {
 	UINT32 segmentType : 3;
 	// 0 = system, 1 = code or data
@@ -101,9 +103,9 @@ typedef struct  {
 	 */
 	struct {
 		struct {
-			UINT64 cr0;
-			UINT64 cr3;
-			UINT64 cr4;
+			processor::Cr0 cr0;
+			processor::Cr3 cr3;
+			processor::Cr4 cr4;
 		} controlRegisters;
 
 		struct {
@@ -177,9 +179,9 @@ typedef struct  {
 
 typedef struct {
 	struct {
-		UINT64 cr0;
-		UINT64 cr3;
-		UINT64 cr4;
+		processor::Cr0 cr0;
+		processor::Cr3 cr3;
+		processor::Cr4 cr4;
 	} controlRegisters;
 	
 	struct {
@@ -474,7 +476,7 @@ typedef struct {
 	// If set to 1, the default treatment of SMIs and SMM is in effect after the VM entry
 	UINT32 deactivateDualMonitor : 1;
 
-	unsigned reserved3 : 1;
+	UINT32 reserved3 : 1;
 
 	// Load IA32_PERF_GLOBAL_CTRL on VMExit
 	UINT32 loadPerfGlobalCtrlOnEntry : 1;
@@ -682,17 +684,5 @@ typedef struct {
 	VMEntryCtrlFields entryCtrl;
 	VMExitInformationFields exitInformation;
 } VMCS;
-
-typedef union _FieldEncoding {
-	struct {
-		UINT32 access_type : 1;
-		UINT32 index : 8;
-		UINT32 component_type : 2;
-		UINT32 reserved1 : 1;  // Must be set to zero
-		UINT32 field_width : 2;
-		UINT32 reserved2 : 18; // Must be set to zero
-	} fields;
-	SIZE_T all;
-} FieldEncoding;
 
 #endif /* __VMCS_H */
