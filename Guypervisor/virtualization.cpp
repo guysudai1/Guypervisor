@@ -13,6 +13,7 @@
 #include "print.h"
 #include "custom_status_codes.h"
 #include "virtual_addr_helpers.h"
+#include "vmcs_field_index.h"
 
 
 namespace virtualization {
@@ -129,34 +130,12 @@ namespace virtualization {
 		return status;
 	}
 
-	NTSTATUS EncodeVMArgument(AccessType access_bit, 
-							  UINT8 index, 
-							  ComponentType component_type, 
-							  WidthType width_type, 
-							  FieldEncoding** encoding) {
-		// TODO: Possibly fix bug here, don't think it's outputting correctly
-		NTSTATUS status = STATUS_SUCCESS;
-
-		if (encoding == nullptr) {
-			status = STATUS_NULLPTR_ERROR;
-			goto cleanup;
-		}
-		FieldEncoding* encoding_field = new FieldEncoding{};
-		encoding_field->fields.access_type = access_bit;
-		encoding_field->fields.index = index;
-		encoding_field->fields.field_width = width_type;
-		encoding_field->fields.component_type = component_type;
-
-		*encoding = encoding_field;
-	cleanup:
-		return status;
-	}
 
 	NTSTATUS PrintVMXError() {
 		NTSTATUS status = STATUS_SUCCESS;
 		SIZE_T fld = 0;
 		// TODO: Add read information
-		status = ReadVMCSField(0, ComponentType::kExitInfoComponent, WidthType::k32Bit, &fld);
+		status = ReadVMCSField(vmcs_field_encoding_e::kVmInstructionError, &fld);
 
 		if (!NT_SUCCESS(status)) {
 			goto cleanup;
@@ -166,30 +145,18 @@ namespace virtualization {
 		return status;
 	}
 
-	NTSTATUS ReadVMCSField(UINT8 index,
-						   ComponentType component_type,
-						   WidthType width_type,
+	NTSTATUS ReadVMCSField(vmcs_field_encoding_e encoding, 
 						   SIZE_T* field) {
 		NTSTATUS status = STATUS_SUCCESS;
-		FieldEncoding* encoding = nullptr;
-		AccessType access_bit = (width_type == WidthType::k64Bit) ? 
-									AccessType::kHighAccess : AccessType::kFullAccess;
+
 		unsigned char operationStatus = 0;
-		size_t test = 0;
 
 		if (field == nullptr) {
 			status = STATUS_NULLPTR_ERROR;
 			goto cleanup;
 		}
 
-		status = EncodeVMArgument(access_bit, index, component_type, width_type, &encoding);
-
-		if (!NT_SUCCESS(status)) {
-			goto cleanup;
-		}
-		// encoding->all = 0x00004402; 
-		// TODO: Figure out why vmread crashes windows.
-		operationStatus = __vmx_vmread(static_cast<size_t>(encoding->all), &test);
+		operationStatus = __vmx_vmread(encoding, field);
 		if (operationStatus != 0) {
 			status = STATUS_FAILED_VMREAD;
 			// TODO: Try to read the error information section
@@ -197,10 +164,6 @@ namespace virtualization {
 		}
 
 	cleanup:
-		if (encoding != nullptr) {
-			// Free
-			delete encoding;
-		}
 		return status;
 	}
 }

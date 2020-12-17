@@ -4,6 +4,7 @@
 #include <wdm.h>
 
 #include "vmcs.h"
+#include "vmcs_field_index.h"
 
 extern "C" bool IsCPUIdSupported(unsigned int mask);
 
@@ -54,16 +55,8 @@ namespace virtualization {
 	NTSTATUS LaunchGuest();
 
 	NTSTATUS PrintVMXError();
-
-	NTSTATUS EncodeVMArgument(AccessType access_bit,
-							  UINT8 index,
-							  ComponentType component_type,
-							  WidthType width_type, 
-							  FieldEncoding** encoding);
 	
-	NTSTATUS ReadVMCSField(UINT8 index,
-						   ComponentType component_type,
-						   WidthType width_type,
+	NTSTATUS ReadVMCSField(vmcs_field_encoding_e encoding,
 						   SIZE_T* field);
 }
 
