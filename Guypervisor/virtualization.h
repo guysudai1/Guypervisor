@@ -16,34 +16,6 @@ namespace virtualization {
 		kEnterVmx = 0x801
 	};
 
-	/*
-	 * Contains size of field
-	 */
-	enum AccessType {
-		kFullAccess = 0x0, // 16-bit / 32-bit / natural-width bit field
-		kHighAccess = 0x1  // 64-bit field access
-	};
-
-	/*
-	 * Contains which component the field was in
-	 */
-	enum ComponentType {
-		kControlComponent = 0x0,	// Control
-		kExitInfoComponent = 0x1,	// VM-exit information
-		kGuestStateComponent = 0x2, // Guest State
-		kHostStateComponent = 0x3, // Host State
-	};
-	
-	/*
-	 * Field width
-	 */
-	enum WidthType {
-		k16Bit = 0x0, // 16 Bit field width 
-		k64Bit = 0x1, // 64 Bit field width
-		k32Bit = 0x2, // Guest State
-		kNaturalWidth = 0x3, // Host State
-	};
-
 	bool VendorIsIntel();
 	bool SupportsVtxOperation();
 
@@ -52,12 +24,37 @@ namespace virtualization {
 	 */
 	NTSTATUS EnterVmxonMode();
 	NTSTATUS InitializeVMCS();
+	NTSTATUS PopulateActiveVMCS();
 	NTSTATUS LaunchGuest();
 
 	NTSTATUS PrintVMXError();
 	
-	NTSTATUS ReadVMCSField(vmcs_field_encoding_e encoding,
-						   SIZE_T* field);
+	/**
+	 * VMX VMRead functions (64 bit, 32 bit, natural width)
+	 */
+
+	NTSTATUS ReadVMCSField64(
+		vmcs_field_encoding_e encoding,
+		UINT64* field
+	);
+
+	NTSTATUS ReadVMCSField32(
+		vmcs_field_encoding_e encoding,
+		UINT32* field
+	);
+
+	NTSTATUS ReadVMCSFieldNatural(
+		vmcs_field_encoding_e encoding,
+		processor::natural_width* field
+	);
+
+
+	/**
+	 * VMX VMWrite functions (64 bit, 32 bit, natural width)
+	 */
+
+	NTSTATUS WriteVMCSFieldNatural(vmcs_field_encoding_e encoding,
+								   processor::natural_width field);
 }
 
 #endif /* __VIRTUALIZATION_H */

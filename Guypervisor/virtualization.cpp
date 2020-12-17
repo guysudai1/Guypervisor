@@ -14,6 +14,7 @@
 #include "custom_status_codes.h"
 #include "virtual_addr_helpers.h"
 #include "vmcs_field_index.h"
+#include "error_codes.h"
 
 
 namespace virtualization {
@@ -26,13 +27,13 @@ namespace virtualization {
 		//  - SMX out of operation [2 bit] = 1
 		NTSTATUS status = STATUS_SUCCESS;
 
-		processor::ControlRegister cr0{0};
+		processor::Cr0 cr0{0};
 		processor::Cr4 cr4{0};
 		processor::FeatureControlMsr controlMsr{0};
 		processor::VmxBasicMsr basicMsr{0};
 		ULONG64 physicalAllocatedVMX;
 		unsigned char operationStatus = 0;
-		processor::processorContext* context = processor::kProcessorContext;
+		processor_context::processorContext* context = processor_context::kProcessorContext;
 
 		// Set CR0 Fixed values
 		cr0.all = __readcr0();
@@ -48,7 +49,7 @@ namespace virtualization {
 
 		// Set CR4.VMXE = 1
 		cr4.all = __readcr4();
-		cr4.bitfield.vmxe = 1;
+		cr4.fields.vmxe = 1;
 		__writecr4(cr4.all);
 
 		// readmsr 0x3A and modify lock bit
@@ -83,7 +84,7 @@ namespace virtualization {
 		NTSTATUS status = STATUS_SUCCESS;
 		ULONG64 physicalAllocatedVMX;
 		processor::VmxBasicMsr basicMsr{ 0 };
-		processor::processorContext* context = processor::kProcessorContext;
+		processor_context::processorContext* context = processor_context::kProcessorContext;
 		unsigned char operationStatus = 0;
 
 		// Modify the basic revision ID
@@ -111,8 +112,15 @@ namespace virtualization {
 		return status;
 	}
 
-	NTSTATUS LaunchGuest()
-	{
+	NTSTATUS PopulateActiveVMCS() {
+		NTSTATUS status = STATUS_SUCCESS;
+		goto cleanup;
+
+	cleanup:
+		return status;
+	}
+
+	NTSTATUS LaunchGuest() {
 		NTSTATUS status = STATUS_SUCCESS;
 		unsigned char operationStatus = 0;
 
@@ -130,14 +138,35 @@ namespace virtualization {
 		return status;
 	}
 
-
 	NTSTATUS PrintVMXError() {
 		NTSTATUS status = STATUS_SUCCESS;
-		SIZE_T fld = 0;
-		// TODO: Add read information
-		status = ReadVMCSField(vmcs_field_encoding_e::kVmInstructionError, &fld);
+		UINT32 instruction_error = 0;
+
+		status = ReadVMCSField32(vmcs_field_encoding_e::kVmInstructionError, &instruction_error);
 
 		if (!NT_SUCCESS(status)) {
+			MDbgPrint("Encountered an error but couldn't read instruction error from vmcs.\n");
+			goto cleanup;
+		}
+
+		MDbgPrint("Encountered an error: %s (status code %ld).\n", 
+			InstructionErrorToString(static_cast<UINT32>(instruction_error)), 
+			instruction_error);
+
+	cleanup:
+		return status;
+	}
+
+	NTSTATUS WriteVMCSFieldNatural(vmcs_field_encoding_e encoding,
+								   processor::natural_width field) {
+		NTSTATUS status = STATUS_SUCCESS;
+
+		unsigned char operationStatus = 0;
+
+		operationStatus = __vmx_vmwrite(encoding, field);
+		if (operationStatus != 0) {
+			status = STATUS_FAILED_VMWRITE;
+			PrintVMXError();
 			goto cleanup;
 		}
 
@@ -145,8 +174,30 @@ namespace virtualization {
 		return status;
 	}
 
-	NTSTATUS ReadVMCSField(vmcs_field_encoding_e encoding, 
-						   SIZE_T* field) {
+	NTSTATUS ReadVMCSField32(vmcs_field_encoding_e encoding,
+							 UINT32* field) {
+		NTSTATUS status = STATUS_SUCCESS;
+		SIZE_T tmp = 0;
+
+		if (field == nullptr) {
+			status = STATUS_NULLPTR_ERROR;
+			goto cleanup;
+		}
+
+		status = ReadVMCSField64(encoding, &tmp);
+
+		if (!NT_SUCCESS(status)) {
+			goto cleanup;
+		}
+
+		*field = static_cast<UINT32>(tmp);
+
+	cleanup:
+		return status;
+	}
+
+	NTSTATUS ReadVMCSField64(vmcs_field_encoding_e encoding,
+						     UINT64* field) {
 		NTSTATUS status = STATUS_SUCCESS;
 
 		unsigned char operationStatus = 0;
@@ -159,11 +210,24 @@ namespace virtualization {
 		operationStatus = __vmx_vmread(encoding, field);
 		if (operationStatus != 0) {
 			status = STATUS_FAILED_VMREAD;
-			// TODO: Try to read the error information section
+			PrintVMXError();
 			goto cleanup;
 		}
 
 	cleanup:
+		return status;
+	}
+
+	NTSTATUS ReadVMCSFieldNatural(vmcs_field_encoding_e encoding,
+								  processor::natural_width* field) {
+		NTSTATUS status = STATUS_SUCCESS;
+
+#ifdef __64BIT__
+		status = ReadVMCSField64(encoding, field);
+#else
+		status = ReadVMCSField32(encoding, field);
+#endif
+
 		return status;
 	}
 }
