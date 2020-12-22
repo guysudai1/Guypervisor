@@ -78,7 +78,7 @@ NTSTATUS irp_handlers::IOCTLHandlerIRP(DEVICE_OBJECT *pDeviceObject, IRP *Irp)
 
 	IrpStack = IoGetCurrentIrpStackLocation(Irp);
 	switch (IrpStack->Parameters.DeviceIoControl.IoControlCode) {
-		case ENTER_VMX:
+		case IOCTL_ENTER_VMX:
 			status = irp_handlers::ioctl::EnterVmxHandler(
 				pDeviceObject,
 						Irp
@@ -116,6 +116,22 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	if (!NT_SUCCESS(status))
 	{
 		MDbgPrint("Initializing VMCS (after VMXON) failed with status: %d\n", status);
+		goto cleanup;
+	}
+
+	// Populate VMCS here
+	status = virtualization::PopulateActiveVMCS();
+	if (!NT_SUCCESS(status))
+	{
+		MDbgPrint("Populating the VMCS (after VMPTRLD) failed with status: %d\n", status);
+		goto cleanup;
+	}
+
+	// VMLaunch here
+	status = virtualization::LaunchGuest();
+	if (!NT_SUCCESS(status))
+	{
+		MDbgPrint("VMLaunch (after VMCS population) failed with status: %d\n", status);
 		goto cleanup;
 	}
 

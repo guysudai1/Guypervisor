@@ -10,7 +10,7 @@
 #define HAS_CPUID_FLAG_MASK 1 << 21
 
 Device* kGuypervisor = nullptr;
-processor::processorContext* processor::kProcessorContext = nullptr;
+processor_context::processorContext* processor_context::kProcessorContext = nullptr;
 
 extern "C" 
 NTSTATUS
@@ -66,8 +66,8 @@ DriverEntry(
     MDbgPrint("Successfully created symlink!\n");
 
     // Initialize processor context
-    processor::kProcessorContext = new processor::processorContext;
-    status = processor::InitializeProcessorContext();
+    processor_context::kProcessorContext = new processor_context::processorContext;
+    status = processor_context::InitializeProcessorContext();
 
     if (!NT_SUCCESS(status))
     {
@@ -82,9 +82,9 @@ cleanup:
             delete kGuypervisor;
         }
 
-        if (processor::kProcessorContext != nullptr) 
+        if (processor_context::kProcessorContext != nullptr)
         {
-            processor::FreeProcessorContext();
+            processor_context::FreeProcessorContext();
         }
     }
 	return status;

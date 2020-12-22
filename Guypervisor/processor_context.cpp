@@ -13,7 +13,7 @@
 
 constexpr uintptr_t kAlignmentSize = 4 * 1024;// 4KB
 
-NTSTATUS processor::InitializeProcessorContext()
+NTSTATUS processor_context::InitializeProcessorContext()
 {
 	NTSTATUS status = STATUS_SUCCESS;
 
@@ -41,7 +41,7 @@ cleanup:
 	return status;
 }
 
-void processor::FreeProcessorContext()
+void processor_context::FreeProcessorContext()
 {
 	IF_NOT_NULLPTR_THEN_FREE_AND_SET_NULLPTR(kProcessorContext->vmxon_region);
 	IF_NOT_NULLPTR_THEN_FREE_AND_SET_NULLPTR(kProcessorContext->vmcs_region);
