@@ -119,11 +119,19 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 		goto cleanup;
 	}
 
+	// Populate VMCS here
+	status = virtualization::PopulateActiveVMCS();
+	if (!NT_SUCCESS(status))
+	{
+		MDbgPrint("Populating the VMCS (after VMPTRLD) failed with status: %d\n", status);
+		goto cleanup;
+	}
+
 	// VMLaunch here
 	status = virtualization::LaunchGuest();
 	if (!NT_SUCCESS(status))
 	{
-		MDbgPrint("VMLaunch (after VMPTRLD) failed with status: %d\n", status);
+		MDbgPrint("VMLaunch (after VMCS population) failed with status: %d\n", status);
 		goto cleanup;
 	}
 
