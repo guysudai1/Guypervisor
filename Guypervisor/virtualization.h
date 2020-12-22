@@ -30,6 +30,25 @@ namespace virtualization {
 	NTSTATUS PrintVMXError();
 	
 	/**
+	 * VMX VMWrite functions (64 bit, 32 bit, natural width)
+	 */
+
+	NTSTATUS WriteVMCSFieldNatural(
+		vmcs_field_encoding_e encoding,
+		processor::natural_width value
+	);
+
+	NTSTATUS WriteVMCSField64(
+		vmcs_field_encoding_e encoding,
+		UINT64 value
+	);
+
+	NTSTATUS WriteVMCSField32(
+		vmcs_field_encoding_e encoding,
+		UINT32 value
+	);
+
+	/**
 	 * VMX VMRead functions (64 bit, 32 bit, natural width)
 	 */
 

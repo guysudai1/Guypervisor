@@ -114,8 +114,16 @@ namespace virtualization {
 
 	NTSTATUS PopulateActiveVMCS() {
 		NTSTATUS status = STATUS_SUCCESS;
-		goto cleanup;
+		processor::natural_width test_if_worked = 0;
+		
+		// Write test
+		//status = WriteVMCSField64(vmcs_field_encoding::kGuestRip, 0x0000133713371337);
+		//if (!NT_SUCCESS(status)) {
+		//	MDbgPrint("FAILED VMCS WRITE :(\n");
+		//	goto cleanup;
+		//}
 
+		//ReadVMCSFieldNatural(vmcs_field_encoding::kGuestRip, &test_if_worked);
 	cleanup:
 		return status;
 	}
@@ -156,14 +164,45 @@ namespace virtualization {
 	cleanup:
 		return status;
 	}
+	
+	/**
+	 * VMX VMWrite functions (64 bit, 32 bit, natural width)
+	 */
 
 	NTSTATUS WriteVMCSFieldNatural(vmcs_field_encoding_e encoding,
-								   processor::natural_width field) {
+		processor::natural_width value) {
+		NTSTATUS status = STATUS_SUCCESS;
+
+#ifdef __64BIT__
+		status = WriteVMCSField64(encoding, value);
+#else
+		status = WriteVMCSField32(encoding, value);
+#endif
+
+		return status;
+	}
+
+	NTSTATUS WriteVMCSField32(vmcs_field_encoding_e encoding,
+							  UINT32 value) {
+		NTSTATUS status = STATUS_SUCCESS;
+
+		status = WriteVMCSField64(encoding, static_cast<UINT64>(value));
+
+		if (!NT_SUCCESS(status)) {
+			goto cleanup;
+		}
+
+	cleanup:
+		return status;
+	}
+
+	NTSTATUS WriteVMCSField64(vmcs_field_encoding_e encoding,
+							  UINT64 value) {
 		NTSTATUS status = STATUS_SUCCESS;
 
 		unsigned char operationStatus = 0;
 
-		operationStatus = __vmx_vmwrite(encoding, field);
+		operationStatus = __vmx_vmwrite(encoding, value);
 		if (operationStatus != 0) {
 			status = STATUS_FAILED_VMWRITE;
 			PrintVMXError();
@@ -173,6 +212,10 @@ namespace virtualization {
 	cleanup:
 		return status;
 	}
+
+	/**
+	 * VMX VMRead functions (64 bit, 32 bit, natural width)
+	 */
 
 	NTSTATUS ReadVMCSField32(vmcs_field_encoding_e encoding,
 							 UINT32* field) {
