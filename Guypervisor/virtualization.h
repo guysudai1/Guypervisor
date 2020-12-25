@@ -29,6 +29,8 @@ namespace virtualization {
 
 	NTSTATUS PrintVMXError();
 	
+	NTSTATUS ClearActiveVMCS();
+
 	/**
 	 * VMX VMWrite functions (64 bit, 32 bit, natural width)
 	 */
@@ -46,6 +48,11 @@ namespace virtualization {
 	NTSTATUS WriteVMCSField32(
 		vmcs_field_encoding_e encoding,
 		UINT32 value
+	);
+
+	NTSTATUS WriteVMCSField16(
+		vmcs_field_encoding_e encoding,
+		UINT16 value
 	);
 
 	/**

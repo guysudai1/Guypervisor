@@ -114,17 +114,165 @@ namespace virtualization {
 
 	NTSTATUS PopulateActiveVMCS() {
 		NTSTATUS status = STATUS_SUCCESS;
-		processor::natural_width test_if_worked = 0;
-		
-		// Write test
-		//status = WriteVMCSField64(vmcs_field_encoding::kGuestRip, 0x0000133713371337);
-		//if (!NT_SUCCESS(status)) {
-		//	MDbgPrint("FAILED VMCS WRITE :(\n");
-		//	goto cleanup;
-		//}
 
-		//ReadVMCSFieldNatural(vmcs_field_encoding::kGuestRip, &test_if_worked);
-	cleanup:
+		PinBasedControls vm_pin_exec_ctrls{ 0 };
+		VMExecCtrlFields vm_exec_ctrl_fields{ 0 };
+		SecondaryVMExecCtrls vm_secondary_ctrl_fields{ 0 };
+
+
+		processor::Cr0 new_guest_cr0{0};
+		processor::Cr3 new_guest_cr3{0};
+		processor::Cr4 new_guest_cr4{0};
+
+		processor::segmentSelector segment_selector{ 0 };
+		// processor::natural_width debugctl_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32DebugCtl));
+		processor::natural_width sysenter_esp_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEsp));
+		processor::natural_width sysenter_eip_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEip)); 
+		UINT64 sysenter_cs_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterCs));
+
+		new_guest_cr0.all = 0x60000010;
+		new_guest_cr3.all = 0;
+		new_guest_cr4.all = 0;
+
+		processor::LoadSegmentSelectors(&segment_selector);
+
+		/**
+		 *  Write Guest fields (filled using the RESET table in page 3110)
+		 */
+
+		// Selectors
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestEsSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestCsSelector, 0xF000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestSsSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestDsSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestFsSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestGsSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestLdtrSelector, 0x0000);
+		status = WriteVMCSField16(vmcs_field_encoding::kGuestTrSelector, 0x0000);
+
+		// Limit
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestEsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestCsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestSsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestDsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestFsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestGsLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestLdtrLimit, 0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestTrLimit,	0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestGdtrLimit, 0xFFFF);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestIdtrLimit, 0xFFFF);
+
+		// Access Rights
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestEsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestCsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestSsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestDsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestFsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestGsAccessRights,	0x0093);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestLdtrAccessRights,	0x0082);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestTrAccessRights,	0x0082);
+
+		// Base 
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestEsBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase,	0xFFFF0000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDsBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestLdtrBase, 0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestTrBase,	0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGdtrBase, 0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestIdtrBase, 0x00000000);
+
+		// Registers
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDr7, 0x00000400);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRsp, 0x00000000);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRip, 0x0000FFF0);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRFlags, 0x00000002);
+
+		// Control registers
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCr0, new_guest_cr0.all);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCr3, new_guest_cr3.all);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCr4, new_guest_cr4.all);
+
+		// Guest states
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestInterruptibilityState, 0x00000000);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestActivityState, 0x00000000);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestSmbase, 0x00030000);
+
+		// Debug delivery (enable / disable / ... exceptions)
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestPendingDebugExceptions, 0x00000000);
+
+		// MSRs
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestIa32SysenterEsp,	0);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestIa32SysenterEip,	0);
+		status = WriteVMCSField32(vmcs_field_encoding::kGuestIa32SysenterCs,		0);
+		status = WriteVMCSField64(vmcs_field_encoding::kGuestIa32DebugCtlFull,		0);
+
+		// Link ptr write
+		status = WriteVMCSField64(vmcs_field_encoding::kGuestVmcsLinkPtrFull, 0xFFFFFFFFFFFFFFFF);
+
+		/**
+		 *  Write host fields
+		 */
+
+		// Selectors
+		status = WriteVMCSField16(vmcs_field_encoding::kHostEsSelector, segment_selector.es);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostCsSelector, segment_selector.cs);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostSsSelector, segment_selector.ss);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostDsSelector, segment_selector.ds);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostFsSelector, segment_selector.fs);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostGsSelector, segment_selector.gs);
+		status = WriteVMCSField16(vmcs_field_encoding::kHostTrSelector, segment_selector.tr);
+
+		// Base
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, _readfsbase_natural());
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, _readgsbase_natural());
+		// TODO: Add tr base?
+		// status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostTrBase, );
+		
+		// MSRs
+		status = WriteVMCSField32(vmcs_field_encoding::kHostIa32SysenterCs, static_cast<UINT32>(sysenter_cs_msr));
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostIa32SysenterEsp, sysenter_esp_msr);
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostIa32SysenterEip, sysenter_eip_msr);
+		
+		// Registers
+#ifdef __64BIT__
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_rsp());
+#else
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_esp());
+#endif
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRip, reinterpret_cast<processor::natural_width>(_ReturnAddress()));
+
+		// Control Registers
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr0, __readcr0());
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr3, __readcr3());
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr4, __readcr4());
+
+		/**
+		 *  Control fields
+		 */
+
+		 /**
+		  *  Primary Control fields
+		  */
+
+		status = WriteVMCSField32(vmcs_field_encoding::kControlPinBasedVmExecutionControls, vm_pin_exec_ctrls.all);
+
+		vm_exec_ctrl_fields.fields.secondControls = 1;
+		status = WriteVMCSField32(vmcs_field_encoding::kControlPrimaryProcessorVmExecutionControls, vm_exec_ctrl_fields.all);
+
+		vm_secondary_ctrl_fields.fields.enableEPT = 1;
+		// vm_secondary_ctrl_fields.fields.enableVPID = 1;
+		status = WriteVMCSField32(vmcs_field_encoding::kControlSecondaryProcessorVmExecutionControls, vm_secondary_ctrl_fields.all);
+
+		// Use EPT
+		// TODO: Implement EPTP stuff
+		// TODO: Implement PML4, PDPT, PD, PT for guest physical -> host physical translation
+		// TODO: Replace `vm_secondary_ctrl_fields.all` with `eptp`
+		status = WriteVMCSField64(vmcs_field_encoding::kControlEPTPFull, vm_secondary_ctrl_fields.all);
+
+	// cleanup:
 		return status;
 	}
 
@@ -165,6 +313,33 @@ namespace virtualization {
 		return status;
 	}
 	
+	NTSTATUS ClearActiveVMCS() {
+		NTSTATUS status = STATUS_SUCCESS;
+		UINT64 vmcs_physical_addr = NULL;
+		unsigned int operation_status = 0;
+
+		operation_status = __vmx_vmptrld(&vmcs_physical_addr);
+		if (operation_status != 0) {
+			if (operation_status == 1) {
+				PrintVMXError();
+			}
+			status = STATUS_FAILED_VMPTRLD;
+			goto cleanup;
+		}
+
+		operation_status = __vmx_vmclear(&vmcs_physical_addr);
+		if (operation_status != 0) {
+			if (operation_status == 1) {
+				PrintVMXError();
+			}
+			status = STATUS_FAILED_VMCLEAR;
+			goto cleanup;
+		}
+
+	cleanup:
+		return status;
+	}
+
 	/**
 	 * VMX VMWrite functions (64 bit, 32 bit, natural width)
 	 */
@@ -179,6 +354,20 @@ namespace virtualization {
 		status = WriteVMCSField32(encoding, value);
 #endif
 
+		return status;
+	}
+
+	NTSTATUS WriteVMCSField16(vmcs_field_encoding_e encoding,
+							  UINT16 value) {
+		NTSTATUS status = STATUS_SUCCESS;
+
+		status = WriteVMCSField64(encoding, static_cast<UINT64>(value));
+
+		if (!NT_SUCCESS(status)) {
+			goto cleanup;
+		}
+
+	cleanup:
 		return status;
 	}
 
