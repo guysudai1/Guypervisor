@@ -9,14 +9,52 @@
 #define __32BIT__
 #endif
 
-namespace processor {
+extern "C" {
+	UINT16 GetEsSelector();
+	UINT16 GetCsSelector();
+	UINT16 GetSsSelector();
+	UINT16 GetDsSelector();
+	UINT16 GetFsSelector();
+	UINT16 GetGsSelector();
+	UINT16 GetLdtrSelector();
+	UINT16 GetTrSelector();
 
+#ifdef __64BIT__
+	UINT64 __read_rsp();
+#else
+	UINT32 __read_esp();
+#endif
+}
+
+namespace processor {
+	
 #ifdef __64BIT__ 
 	// 64 Bit
 	typedef UINT64 natural_width;
+
+#define _readfsbase_natural _readfsbase_u64
+#define _readgsbase_natural _readgsbase_u64
+
 #else
 	typedef UINT32 natural_width;
+
+#define _readfsbase_natural _readfsbase_u32
+#define _readgsbase_natural _readgsbase_u32
+
 #endif
+
+	typedef struct _segmentSelector{
+		UINT16 es;
+		UINT16 cs;
+		UINT16 ss;
+		UINT16 ds;
+		UINT16 fs;
+		UINT16 gs;
+		UINT16 ldtr;
+		UINT16 tr;
+	} segmentSelector;
+
+	void LoadSegmentSelectors(segmentSelector* segment_selector);
 
 	typedef struct _Bitfield64 {
 		unsigned char bit0 : 1;
@@ -253,11 +291,11 @@ namespace processor {
 		Bitfield64 bitfield;
 		struct {
 			UINT64 reserved1 : 3;		// [0:2]
-			UINT64 pwt : 1;				// [3] - Page-level Write-Through
-			UINT64 pcd : 1;				// [4] - Page-level Cache Disable
+			UINT64 pwt : 1;				// [3] - Page-level Write-Through (Note: only on x64 ?)
+			UINT64 pcd : 1;				// [4] - Page-level Cache Disable (Note: only on x64 ?)
 			UINT64 reserved2 : 7;		// [5:11]
-			UINT64 pdb : 40;			// [12:51] - Page-Directory Base
-			UINT64 reserved3 : 12;		// [52:63] - Should be zero
+			UINT64 pdb : 20;			// [12:31] - Page-Directory Base
+			UINT64 reserved3 : 32;		// [32:63] - Should be zero
 		} fields;
 		UINT64 all;
 	} Cr3;
@@ -265,29 +303,50 @@ namespace processor {
 	typedef union {
 		Bitfield64 bitfield;
 		struct {
-			unsigned vme : 1;			// [0]
-			unsigned pvi : 1;			// [1]
-			unsigned tsd : 1;			// [2]
-			unsigned de : 1;           // [3]
-			unsigned pse : 1;			// [4]
-			unsigned pae : 1;			// [5]
-			unsigned mce : 1;			// [6]
-			unsigned pge : 1;			// [7]
-			unsigned pce : 1;			// [8]
-			unsigned osfxsr : 1;		// [9]
-			unsigned osxmmexcpt : 1;	// [10]
-			unsigned umip : 1;			// [11]
-			unsigned reserved1 : 1;		// [12]
-			unsigned vmxe : 1;			// [13]
-			unsigned smxe : 1;			// [14]
-			unsigned reserved2 : 2;		// [15:16]
-			unsigned pcide : 1;			// [17]
-			unsigned osxsave : 1;		// [18]
-			unsigned reserved3 : 1;		// [19]
-			unsigned smep : 1;			// [20]
-			unsigned smap : 1;			// [21]
-			unsigned reserved4 : 16;	// [22:63]
-			unsigned reserved5 : 26;	// [22:63]
+			unsigned vme : 1;			// [0] - Virtual-8086 Mode Extensions
+			/*
+			 * Enables hardware support for a virtual interrupt flag (VIF) in protected 
+			 * mode when set; disables the VIF flag in protected mode when clear.
+			 */
+			unsigned pvi : 1;			// [1] - Protected-Mode Virtual Interrupts 
+			unsigned tsd : 1;			// [2] - Time Stamp Disable 
+			/*
+			 * References to debug registers DR4 and DR5 cause an undefined 
+			 * opcode (#UD) exception to be generated when set.
+			 */
+			unsigned de : 1;            // [3] - Debugging Extensions
+			/*
+			 * Enables 4-MByte pages with 32-bit paging when set; restricts 32-bit 
+			 * paging to pages of 4 KBytes when clear.
+			 */
+			unsigned pse : 1;			// [4] - Page Size Extensions 
+			/*
+			 * When set, enables paging to produce physical addresses with more than 32 bits. 
+			 * When clear, restricts physical addresses to 32 bits. PAE must be 
+			 * set before entering IA-32e mode.
+			 */
+			unsigned pae : 1;			// [5] - Physical Address Extension
+			unsigned mce : 1;			// [6] - Machine-Check Enable
+			unsigned pge : 1;			// [7] - Page Global Enable 
+			unsigned pce : 1;			// [8] - Performance-Monitoring Counter Enable
+			unsigned osfxsr : 1;		// [9] - Operating System Support for FXSAVE and FXRSTOR instructions
+			unsigned osxmmexcpt : 1;	// [10] - Operating System Support for Unmasked SIMD Floating-Point Exceptions
+			unsigned umip : 1;			// [11] - User-Mode Instruction Prevention
+			unsigned la57 : 1;			// [12] - 57-bit linear addresses
+			unsigned vmxe : 1;			// [13] - VMX-Enable Bit
+			unsigned smxe : 1;			// [14] - SMX-Enable Bit
+			unsigned reserved1 : 1;		// [15]
+			unsigned fsgsbase : 1;		// [16] - FSGSBASE-Enable Bit
+			unsigned pcide : 1;			// [17] - PCID-Enable Bit
+			unsigned osxsave : 1;		// [18] - XSAVE and Processor Extended States-Enable Bit
+			unsigned reserved2 : 1;		// [19]
+			unsigned smep : 1;			// [20] - SMEP-Enable Bit
+			unsigned smap : 1;			// [21] - SMAP-Enable Bit
+			unsigned pke : 1;			// [22] - Enable protection keys for user-mode pages 
+			unsigned cet: 1;			// [23] - Control-flow Enforcement Technology
+			unsigned pks : 1;			// [24] - Enable protection keys for supervisor-mode pages
+			unsigned reserved3 : 16;	// [25:63]
+			unsigned reserved4 : 23;	// [25:63]
 		} fields;
 		UINT64 all;
 	} Cr4;
