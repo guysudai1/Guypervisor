@@ -633,7 +633,7 @@ typedef enum vmcs_field_encoding {
     kGuestRip = 0x0000681E,
 
     // Index: 0x00000010
-    kGuestRflags = 0x00006820,
+    kGuestRFlags = 0x00006820,
 
     // Index: 0x00000011
     kGuestPendingDebugExceptions = 0x00006822,
