@@ -9,6 +9,10 @@ namespace msr {
 		kIa32VmxCr0Fixed1			= 0x487,		// IA32_VMX_CR0_FIXED1
 		kIa32VmxCr4Fixed0			= 0x488,		// IA32_VMX_CR4_FIXED0
 		kIa32VmxCr4Fixed1			= 0x489,		// IA32_VMX_CR4_FIXED1
+		kIa32DebugCtl				= 0x01D9,		// IA32_DEBUGCTL
+		kIa32SysenterCs				= 0x174,		// IA32_SYSENTER_CS
+		kIa32SysenterEsp			= 0x175,		// IA32_SYSENTER_ESP
+		kIa32SysenterEip			= 0x176,		// IA32_SYSENTER_EIP
 	};
 }
 
