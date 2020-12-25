@@ -8,4 +8,8 @@
 void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys);
 PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize);
 
+BOOLEAN WritePhysicalMemory(HANDLE PhysicalMemory, PVOID Address, SIZE_T Length);
+BOOLEAN ReadPhysicalMemory(HANDLE PhysicalMemory, PVOID Address, SIZE_T Length);
+HANDLE OpenPhysicalMemory();
+
 #endif /* __VIRTUAL_ADDR_HELPERS_H */

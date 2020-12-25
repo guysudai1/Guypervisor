@@ -51,3 +51,97 @@ PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize
 
 	return allocatedMemory;
 }
+
+
+BOOLEAN WritePhysicalMemory(HANDLE PhysicalMemory, PVOID Address, SIZE_T Length)
+{
+    NTSTATUS            ntStatus;
+    PHYSICAL_ADDRESS    viewBase{};
+    PUCHAR              mappedBuffer = NULL;
+	char				test[] = { 0x13, 0x37, 0x13, 0x37 };
+    viewBase.QuadPart = reinterpret_cast<ULONGLONG>(Address);
+
+	if (Length < 4) {
+		return STATUS_FAILED_TO_ALLOCATE_MEMORY;
+	}
+
+    ntStatus = ZwMapViewOfSection(
+		PhysicalMemory, 
+		reinterpret_cast<HANDLE>(-1),                          
+		reinterpret_cast<PVOID*>(&mappedBuffer), 
+		0L,
+		Length, 
+		&viewBase, 
+		&Length, 
+		ViewUnmap, 
+		0,
+		PAGE_READWRITE
+    );
+
+    if (!NT_SUCCESS(ntStatus)) {
+        MDbgPrint("Could not map view of %X length %X : %lx\n", Address, Length, ntStatus);
+        return FALSE;
+    }
+
+	RtlCopyMemory(mappedBuffer, test, sizeof(test));
+	ZwUnmapViewOfSection((HANDLE)-1, mappedBuffer);
+	MDbgPrint("Write: %x %x %x %x\n", test[0], test[1], test[2], test[3]);
+	return TRUE;
+}
+
+BOOLEAN ReadPhysicalMemory(HANDLE PhysicalMemory, PVOID Address, SIZE_T Length)
+{
+	NTSTATUS            ntStatus;
+	PHYSICAL_ADDRESS    viewBase{};
+	PUCHAR              mappedBuffer = NULL;
+	char				test[] = { 0x00, 0x00, 0x00, 0x00 };
+	viewBase.QuadPart = reinterpret_cast<ULONGLONG>(Address);
+
+	if (Length < 4) {
+		return STATUS_FAILED_TO_ALLOCATE_MEMORY;
+	}
+
+	ntStatus = ZwMapViewOfSection(
+		PhysicalMemory,
+		reinterpret_cast<HANDLE>(-1),
+		reinterpret_cast<PVOID*>(&mappedBuffer),
+		0L,
+		Length,
+		&viewBase,
+		&Length,
+		ViewUnmap,
+		0,
+		PAGE_READWRITE
+	);
+
+	if (!NT_SUCCESS(ntStatus)) {
+		MDbgPrint("Could not map view of %X length %X : %lx\n", Address, Length, ntStatus);
+		return FALSE;
+	}
+
+	RtlCopyMemory(test, mappedBuffer, sizeof(test));
+	ZwUnmapViewOfSection((HANDLE)-1, mappedBuffer);
+	MDbgPrint("Read: %x %x %x %x\n", test[0], test[1], test[2], test[3]);
+	return TRUE;
+}
+
+HANDLE OpenPhysicalMemory()
+{
+    NTSTATUS        status;
+    HANDLE          physmem;
+    UNICODE_STRING  physmemString;
+    OBJECT_ATTRIBUTES attributes;
+
+    RtlInitUnicodeString(&physmemString, L"\\Device\\PhysicalMemory");
+
+    InitializeObjectAttributes(&attributes, &physmemString, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    status = ZwOpenSection(&physmem, GENERIC_WRITE | GENERIC_READ, &attributes);
+
+    if (!NT_SUCCESS(status)) {
+        MDbgPrint("Failed ZwOpenSection(\\Device\\PhysicalMemory) => %08X\n", status);
+        return NULL;
+    }
+
+    return physmem;
+}
