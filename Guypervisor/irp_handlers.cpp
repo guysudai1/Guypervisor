@@ -3,6 +3,10 @@
 #include <intrin.h>
 
 #include "print.h"
+#include "virtualization.h"
+
+// TODO: Remove later, this is just for testing
+#include "virtual_addr_helpers.h"
 
 NTSTATUS irp_handlers::GeneralHandlerIRP(DEVICE_OBJECT *pDeviceObject, IRP *Irp)
 {
@@ -100,6 +104,7 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	// Handle IRP_MJ_CLOSE and stop hypervisor
 	NTSTATUS status = STATUS_SUCCESS;
 	bool entered_vmx = false;
+	bool created_active_vmcs = false;
 
 	MDbgPrint("Entered EnterVmxHandler\n");
 
@@ -118,6 +123,7 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 		MDbgPrint("Initializing VMCS (after VMXON) failed with status: %d\n", status);
 		goto cleanup;
 	}
+	created_active_vmcs = true;
 
 	// Populate VMCS here
 	status = virtualization::PopulateActiveVMCS();
@@ -136,8 +142,15 @@ NTSTATUS irp_handlers::ioctl::EnterVmxHandler(DEVICE_OBJECT *pDeviceObject, IRP 
 	}
 
 cleanup:
-	if (!NT_SUCCESS(status) && entered_vmx)
-	{
+	if (created_active_vmcs) {
+		/**
+		 * To prevent such corruption of a VMCS that may be used either after a return to VMX 
+		 * operation or on another logical processor, software should execute VMCLEAR for that 
+		 * VMCS before executing the VMXOFF instruction or removing power from the processor.
+		 */
+		virtualization::ClearActiveVMCS();
+	}
+	if (entered_vmx) {
 		__vmx_off();
 	}
 	return status;
