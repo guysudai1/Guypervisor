@@ -217,164 +217,174 @@ typedef struct {
 	} modelSpecificRegisters;
 } HostState;
 
-typedef struct {
-	// If this control is 1, external interrupts cause VM exits
-	UINT32 externalInterruptExit : 1;
+typedef union {
+	struct {
+		// If this control is 1, external interrupts cause VM exits
+		UINT32 externalInterruptExit : 1;
 
-	UINT32 reserved1 : 2;
+		UINT32 reserved1 : 2;
 
-	// If this control is 1, non-maskable interrupts (NMIs) cause VM exits
-	UINT32 nmiExiting : 1;
+		// If this control is 1, non-maskable interrupts (NMIs) cause VM exits
+		UINT32 nmiExiting : 1;
 
-	UINT32 reserved2 : 1;
+		UINT32 reserved2 : 1;
 
-	// NMIs never blocked
-	UINT32 virtualNMI : 1;
+		// NMIs never blocked
+		UINT32 virtualNMI : 1;
 
-	// preemption timer counts down, and an exit occurs when timer counts down to 0
-	UINT32 vmxPreemptionTimer : 1;
+		// preemption timer counts down, and an exit occurs when timer counts down to 0
+		UINT32 vmxPreemptionTimer : 1;
 
-	// processor treats interrupts with the posted-interrupt notification vector
-	UINT32 processInterrupts : 1;
+		// processor treats interrupts with the posted-interrupt notification vector
+		UINT32 processInterrupts : 1;
 
-	UINT32 reserved3 : 25;
+		UINT32 reserved3 : 25;
+	} fields;
+	UINT32 all;
 } PinBasedControls;
 
-typedef struct
+typedef union
 {
-	UINT32 reserved1 : 2;
+	struct {
+		UINT32 reserved1 : 2;
 
-	// VM exit occurs at any instruction if interrupts are enabled
-	UINT32 interruptExit : 1;
+		// VM exit occurs at any instruction if interrupts are enabled
+		UINT32 interruptExit : 1;
 
-	// Allows time modification
-	UINT32 tscOffset : 1;
+		// Allows time modification
+		UINT32 tscOffset : 1;
 
-	UINT32 reserved2 : 3;
+		UINT32 reserved2 : 3;
 
-	// HLT causes vmexit
-	UINT32 hltExiting : 1;
+		// HLT causes vmexit
+		UINT32 hltExiting : 1;
 
-	UINT32 reserved3 : 1;
+		UINT32 reserved3 : 1;
 
-	// INVLPG causes vmexit
-	UINT32 invlpgExit : 1;
-	// MWAIT causes vmexit
-	UINT32 mwaitExit : 1;
-	// RDSTC and RDTSCP cause vmexits
-	UINT32 rdstcExit : 1;
+		// INVLPG causes vmexit
+		UINT32 invlpgExit : 1;
+		// MWAIT causes vmexit
+		UINT32 mwaitExit : 1;
+		// RDSTC and RDTSCP cause vmexits
+		UINT32 rdstcExit : 1;
 
-	UINT32 reserved4 : 2;
+		UINT32 reserved4 : 2;
 
-	// decides whether MOVs to CR3 cause exit
-	UINT32 cr3LoadExit : 1;
-	// decides whether MOVs from CR3 cause exit
-	UINT32 cr3StoreExit : 1;
+		// decides whether MOVs to CR3 cause exit
+		UINT32 cr3LoadExit : 1;
+		// decides whether MOVs from CR3 cause exit
+		UINT32 cr3StoreExit : 1;
 
-	UINT32 reserved5 : 2;
+		UINT32 reserved5 : 2;
 
-	// decides whether MOVs to CR8 cause exit
-	UINT32 cr8LoadExit : 1;
-	// decides whether MOVs from CR3 cause exit
-	UINT32 cr8StoreExit : 1;
+		// decides whether MOVs to CR8 cause exit
+		UINT32 cr8LoadExit : 1;
+		// decides whether MOVs from CR3 cause exit
+		UINT32 cr8StoreExit : 1;
 
-	// enables TPR virtualization, and APIC virtualization
-	UINT32 useTprShadow : 1;
+		// enables TPR virtualization, and APIC virtualization
+		UINT32 useTprShadow : 1;
 
-	// exits if no virtual NMI blocking
-	UINT32 nmiWindowExit : 1;
+		// exits if no virtual NMI blocking
+		UINT32 nmiWindowExit : 1;
 
-	// MOV DR causes exit
-	UINT32 movDrExit : 1;
+		// MOV DR causes exit
+		UINT32 movDrExit : 1;
 
-	// exits if IN, INS/INSB/INSW/INSD, OUT, OUTS/OUTSB/OUTSW/OUTSD executed
-	UINT32 unconditionalIoExit : 1;
+		// exits if IN, INS/INSB/INSW/INSD, OUT, OUTS/OUTSB/OUTSW/OUTSD executed
+		UINT32 unconditionalIoExit : 1;
 
-	// 0 => don't use bitmaps, 1 => use bitmaps
-	UINT32 virtualizeIoBitmaps : 1;
+		// 0 => don't use bitmaps, 1 => use bitmaps
+		UINT32 virtualizeIoBitmaps : 1;
 
-	UINT32 reserved6 : 1;
+		UINT32 reserved6 : 1;
 
-	// monitor trap flag debugging features enabled
-	UINT32 monitorTrapFlag : 1;
+		// monitor trap flag debugging features enabled
+		UINT32 monitorTrapFlag : 1;
 
-	// virtualize MSR bitmaps - RDMSR / WRMSR
-	UINT32 virtualizeMsrBitmaps : 1;
+		// virtualize MSR bitmaps - RDMSR / WRMSR
+		UINT32 virtualizeMsrBitmaps : 1;
 
-	// MONITOR Exiting 
-	UINT32 monitorExit : 1;
-	// PAUSE Exiting 
-	UINT32 pauseExit : 1;
+		// MONITOR Exiting 
+		UINT32 monitorExit : 1;
+		// PAUSE Exiting 
+		UINT32 pauseExit : 1;
 
-	// Activate secondary controls (whether to use a second control structure) - we will use this
-	UINT32 secondControls : 1;
+		// Activate secondary controls (whether to use a second control structure) - we will use this
+		UINT32 secondControls : 1;
+	} fields;
+	UINT32 all;
 } VMExecCtrlFields;
 
-typedef struct {
-	UINT32 virtualizeApic : 1;
-	UINT32 enableEPT : 1;
+typedef union {
+	struct {
+		UINT32 virtualizeApic : 1;
+		UINT32 enableEPT : 1;
 
-	// LGDT, LIDT, LLDT, LTR, SGDT, SIDT, SLDT, STR cause exits
-	UINT32 descTableExit : 1;
-	UINT32 enableRdtscp : 1;
+		// LGDT, LIDT, LLDT, LTR, SGDT, SIDT, SLDT, STR cause exits
+		UINT32 descTableExit : 1;
 
-	// If this control is 1, the logical processor treats specially RDMSR and WRMSR to APIC MSRs (in the range 800H–8FFH)
-	UINT32 virtualizeAPICMsr : 1;
+		UINT32 enableRdtscp : 1;
 
-	// If this control is 1, cached translations of linear addresses are associated with a virtualprocessor identifier
-	UINT32 enableVPID : 1;
+		// If this control is 1, the logical processor treats specially RDMSR and WRMSR to APIC MSRs (in the range 800H–8FFH)
+		UINT32 virtualizeAPICMsr : 1;
 
-	UINT32 wbinvdExit : 1;
-	// Guest may run in unpaged protected mode or in real-mode
-	UINT32 unrestrictedGuest : 1;
+		// If this control is 1, cached translations of linear addresses are associated with a virtualprocessor identifier
+		UINT32 enableVPID : 1;
 
-	UINT32 apicRegisterVirt : 1;
-	
-	// Enables evaluation and delivery of pending virtual interrupts
-	UINT32 virtualInterruptDelivery : 1;
+		UINT32 wbinvdExit : 1;
+		// Guest may run in unpaged protected mode or in real-mode
+		UINT32 unrestrictedGuest : 1;
 
-	// This control determines whether a series of executions of PAUSE can cause a VM exit 
-	UINT32 pauseLoopExiting : 1;
+		UINT32 apicRegisterVirt : 1;
 
-	UINT32 rdrandExit : 1;
+		// Enables evaluation and delivery of pending virtual interrupts
+		UINT32 virtualInterruptDelivery : 1;
 
-	// If this is 0, invpcid causes #UD
-	UINT32 enableINVPCID : 1;
+		// This control determines whether a series of executions of PAUSE can cause a VM exit 
+		UINT32 pauseLoopExiting : 1;
 
-	UINT32 enableVMFUNC : 1;
+		UINT32 rdrandExit : 1;
 
-	UINT32 vmcsShadowing : 1;
+		// If this is 0, invpcid causes #UD
+		UINT32 enableINVPCID : 1;
 
-	// If this control is 1, executions of ENCLS consult the ENCLS-exiting bitmap to determine whether
-	// the instruction causes a VM exit
-	UINT32 enableENCLSExit : 1;
+		UINT32 enableVMFUNC : 1;
 
-	UINT32 rdseedExit : 1;
+		UINT32 vmcsShadowing : 1;
 
-	// enable page modification log
-	UINT32 enablePML : 1;
+		// If this control is 1, executions of ENCLS consult the ENCLS-exiting bitmap to determine whether
+		// the instruction causes a VM exit
+		UINT32 enableENCLSExit : 1;
 
-	// If this control is 1, EPT violations may cause virtualization exceptions (#VE) instead of VM exits. 
-	UINT32 EPTViolation : 1;
+		UINT32 rdseedExit : 1;
 
-	// If this control is 1, Intel Processor Trace suppresses data packets that indicate the use of virtualization
-	UINT32 concealVirtualizationFromPT : 1;
+		// enable page modification log
+		UINT32 enablePML : 1;
 
-	// If this control is 0, any execution of XSAVES or XRSTORS causes a #UD.
-	UINT32 enableXSaves_XStores : 1;
+		// If this control is 1, EPT violations may cause virtualization exceptions (#VE) instead of VM exits. 
+		UINT32 EPTViolation : 1;
 
-	UINT32 reserved1 : 1;
+		// If this control is 1, Intel Processor Trace suppresses data packets that indicate the use of virtualization
+		UINT32 concealVirtualizationFromPT : 1;
 
-	// If this control is 1, EPT execute permissions are based on whether the linear address being
-	// accessed is supervisor mode or user mode
-	UINT32 executeCtrlEPT : 1;
+		// If this control is 0, any execution of XSAVES or XRSTORS causes a #UD.
+		UINT32 enableXSaves_XStores : 1;
 
-	UINT32 reserved2 : 2;
+		UINT32 reserved1 : 1;
 
-	// Scale time by multiply factor
-	UINT32 useTSCScaling : 1;
+		// If this control is 1, EPT execute permissions are based on whether the linear address being
+		// accessed is supervisor mode or user mode
+		UINT32 executeCtrlEPT : 1;
 
-	UINT32 reserved3 : 6;
+		UINT32 reserved2 : 2;
+
+		// Scale time by multiply factor
+		UINT32 useTSCScaling : 1;
+
+		UINT32 reserved3 : 6;
+	} fields;
+	UINT32 all;
 } SecondaryVMExecCtrls;
 
 typedef struct {
@@ -393,6 +403,9 @@ typedef struct {
 	Bitmap B;
 } IOBitmap;
 
+/** 
+ * The EPT is documented in page 3960
+ */
 typedef struct {
 	/*
 	Possible memory types:
@@ -666,20 +679,14 @@ typedef struct {
 	HostState hostState;
 	
 	VMExecCtrlFields executionCtrl;
-	/* TODO: Delete this comment later
 	SecondaryVMExecCtrls secondExecCtrl;
 
-	UINT32 exceptionBitmap;
-
-	IOBitmap ioBitmaps;
-
-	TimeScale timeFields;
-	
+	// UINT32 exceptionBitmap;
+	// IOBitmap ioBitmaps;
+	// TimeScale timeFields;
 	EPTP eptPtr;
-	
 	UINT16 vpid;
-		TODO: Delete this comment later
-	*/
+
 	VMExitCtrlFields exitCtrl;
 	VMEntryCtrlFields entryCtrl;
 	VMExitInformationFields exitInformation;
