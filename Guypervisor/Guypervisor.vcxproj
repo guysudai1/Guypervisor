@@ -166,19 +166,26 @@
     <ClInclude Include="custom_status_codes.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="Driver.h" />
+    <ClInclude Include="error_codes.h" />
     <ClInclude Include="irp_handlers.h" />
     <ClInclude Include="msr.h" />
+    <ClInclude Include="paging.h" />
     <ClInclude Include="print.h" />
+    <ClInclude Include="processor.h" />
     <ClInclude Include="processor_context.h" />
     <ClInclude Include="virtualization.h" />
     <ClInclude Include="virtual_addr_helpers.h" />
     <ClInclude Include="vmcs.h" />
+    <ClInclude Include="vmcs_field.h" />
+    <ClInclude Include="vmcs_field_index.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cleanup.cpp" />
     <ClCompile Include="Device.cpp" />
     <ClCompile Include="Driver.cpp" />
+    <ClCompile Include="error_codes.cpp" />
     <ClCompile Include="irp_handlers.cpp" />
+    <ClCompile Include="processor.cpp" />
     <ClCompile Include="processor_context.cpp" />
     <ClCompile Include="virtualization.cpp" />
     <ClCompile Include="virtualization_detection.cpp" />
@@ -186,6 +193,7 @@
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm" />
+    <MASM Include="vmcs_init_helpers.asm" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

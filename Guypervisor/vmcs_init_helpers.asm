@@ -11,51 +11,51 @@ public __read_rsp
 public __read_esp
 
 GetEsSelector PROC
-; Returns es selector register
-mov ax, es
-ret
+    ; Returns es selector register
+    mov ax, es
+    ret
 GetEsSelector ENDP
 
 GetCsSelector PROC
-; Returns cs selector register
-mov ax, cs
-ret
+    ; Returns cs selector register
+    mov ax, cs
+    ret
 GetCsSelector ENDP
 
 GetSsSelector PROC
-; Returns ss selector register
-mov ax, ss
-ret
+    ; Returns ss selector register
+    mov ax, ss
+    ret
 GetSsSelector ENDP
 
 GetDsSelector PROC
-; Returns ds selector register
-mov ax, ds
-ret
+    ; Returns ds selector register
+    mov ax, ds
+    ret
 GetDsSelector ENDP
 
 GetFsSelector PROC
-; Returns fs selector register
-mov ax, fs
-ret
+    ; Returns fs selector register
+    mov ax, fs
+    ret
 GetFsSelector ENDP
 
 GetGsSelector PROC
-; Returns gs selector register
-mov ax, gs
-ret
+    ; Returns gs selector register
+    mov ax, gs
+    ret
 GetGsSelector ENDP
 
 GetLdtrSelector PROC
-; Returns ldtr selector register
-lldt ax
-ret
+    ; Returns ldtr selector register
+    sldt ax
+    ret
 GetLdtrSelector ENDP
 
 GetTrSelector PROC
-; Returns tr selector register
-ltr ax
-ret
+    ; Returns tr selector register
+    str ax
+    ret
 GetTrSelector ENDP
 
 __read_rsp PROC

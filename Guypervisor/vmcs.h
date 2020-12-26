@@ -82,7 +82,7 @@ typedef struct {
 	UINT64 pdpte1;
 	UINT64 pdpte2;
 	UINT64 pdpte3;
-} PDPTE;
+} PDPTERegister;
 
 /*
 
@@ -166,7 +166,7 @@ typedef struct  {
 
 		UINT32 preemptiveTimer;
 
-		PDPTE pageDirectoryPtrTblEntries;
+		PDPTERegister pageDirectoryPtrTblEntries;
 
 		struct {
 			unsigned char requestVirtualInterrupt;
@@ -403,30 +403,34 @@ typedef struct {
 	Bitmap B;
 } IOBitmap;
 
+
 /** 
  * The EPT is documented in page 3960
  */
-typedef struct {
-	/*
-	Possible memory types:
-	 *	0 = Uncacheable
-	 *  6 = Write-back
-	*/
-	UINT64 memoryType : 3;
+typedef union {
+	struct {
+		/*
+		Possible memory types:
+		 *	0 = Uncacheable
+		 *  6 = Write-back
+		*/
+		UINT64 memoryType : 3;
 
-	// This value is 1 less than the EPT page-walk length (see Section 28.2.2)
-	UINT64 walkPathMinusOne : 3;
+		// This value is 1 less than the EPT page-walk length (see Section 28.2.2)
+		UINT64 walkPathMinusOne : 3;
 
-	// Setting this control to 1 enables accessed and dirty flags for EPT (see Section 28.2.4)2
-	//  Not all processors support accessed and dirty flags for EPT. Software should read the VMX capability MSR
-	// IA32_VMX_EPT_VPID_CAP(see Appendix A.10) to determine whether the processor supports this feature
-	UINT64 dirtyAccessFlags : 1;
+		// Setting this control to 1 enables accessed and dirty flags for EPT (see Section 28.2.4)2
+		//  Not all processors support accessed and dirty flags for EPT. Software should read the VMX capability MSR
+		// IA32_VMX_EPT_VPID_CAP(see Appendix A.10) to determine whether the processor supports this feature
+		UINT64 dirtyAccessFlags : 1;
 
-	UINT64 reserved1 : 5;
+		UINT64 reserved1 : 5;
 
-	//  N is the physical-address width supported by the logical processor. Software can determine a processor’s physical-address width by
-	// executing CPUID with 80000008H in EAX.The physical - address width is returned in bits 7:0 of EAX.
-	UINT64 addressPlusReserved : 52;
+		//  N is the physical-address width supported by the logical processor. Software can determine a processor’s physical-address width by
+		// executing CPUID with 80000008H in EAX.The physical - address width is returned in bits 7:0 of EAX.
+		UINT64 addressPlusReserved : 52;
+	} fields;
+	UINT64 all;
 } EPTP;
 
 typedef struct {
@@ -506,21 +510,24 @@ typedef struct {
 
 /* BASIC VM EXIT INFORMATION */
 
-typedef struct {
-	UINT32 basicExitReason : 16;
+typedef union {
+	struct {
+		UINT32 basicExitReason : 16;
 
-	UINT32 reserved1: 11;
+		UINT32 reserved1 : 11;
 
-	UINT32 VMExitInclaveMode : 1;
+		UINT32 VMExitInclaveMode : 1;
 
-	UINT32 pendingMonitorTrapFlagVMExit : 1;
+		UINT32 pendingMonitorTrapFlagVMExit : 1;
 
-	UINT32 VMExitFromRootOp : 1;
-	UINT32 reserved2 : 1;
+		UINT32 VMExitFromRootOp : 1;
+		UINT32 reserved2 : 1;
 
-	// 0 = true VM exit
-	// 1 = VM Entry Failure
-	UINT32 VMEntryFailure : 1;
+		// 0 = true VM exit
+		// 1 = VM Entry Failure
+		UINT32 VMEntryFailure : 1;
+	} fields;
+	UINT32 all;
 } ExitReason;
 
 typedef struct {
@@ -692,4 +699,4 @@ typedef struct {
 	VMExitInformationFields exitInformation;
 } VMCS;
 
-#endif /* __VMCS_H */
+#endif /* __VMCS_H  */

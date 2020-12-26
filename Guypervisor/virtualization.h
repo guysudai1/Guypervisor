@@ -5,6 +5,7 @@
 
 #include "vmcs.h"
 #include "vmcs_field_index.h"
+#include "msr.h"
 
 extern "C" bool IsCPUIdSupported(unsigned int mask);
 
@@ -30,6 +31,11 @@ namespace virtualization {
 	NTSTATUS PrintVMXError();
 	
 	NTSTATUS ClearActiveVMCS();
+
+	/*
+	 * This function is used to consult with control MSRs
+	 */
+	UINT32 ModifyControlValue(msr::intel_e msr, UINT32 requested_value);
 
 	/**
 	 * VMX VMWrite functions (64 bit, 32 bit, natural width)

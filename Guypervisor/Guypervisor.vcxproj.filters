@@ -57,6 +57,21 @@
     <ClInclude Include="custom_status_codes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vmcs_field_index.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vmcs_field.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="error_codes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="processor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="paging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Device.cpp">
@@ -83,9 +98,18 @@
     <ClCompile Include="processor_context.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="error_codes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="processor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm">
+      <Filter>Source Files</Filter>
+    </MASM>
+    <MASM Include="vmcs_init_helpers.asm">
       <Filter>Source Files</Filter>
     </MASM>
   </ItemGroup>

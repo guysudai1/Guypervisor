@@ -15,7 +15,7 @@
 #include "virtual_addr_helpers.h"
 #include "vmcs_field_index.h"
 #include "error_codes.h"
-
+#include "processor_context.h"
 
 namespace virtualization {
 	NTSTATUS EnterVmxonMode()
@@ -65,7 +65,7 @@ namespace virtualization {
 
 		// Modify the basic revision ID
 		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
-		context->vmxon_region->revisionIdentifier = basicMsr.bitfield.revision_id;
+		context->vmxon_region->revisionIdentifier = basicMsr.fields.revision_id;
 
 		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmxon_region).QuadPart;
 		operationStatus = __vmx_on(&physicalAllocatedVMX);
@@ -79,6 +79,18 @@ namespace virtualization {
 		return status;
 	}
 
+	UINT32 ModifyControlValue(msr::intel_e msr, UINT32 requested_value) {
+		LARGE_INTEGER msr_value = {};
+		msr_value.QuadPart = __readmsr(static_cast<unsigned long>(msr));
+		auto adjusted_value = requested_value;
+
+		// 0 In high word means can't be zero 
+		adjusted_value &= msr_value.HighPart;
+		// 1 In low word means must be one
+		adjusted_value |= msr_value.LowPart;
+		return adjusted_value;
+	}
+
 	NTSTATUS InitializeVMCS()
 	{
 		NTSTATUS status = STATUS_SUCCESS;
@@ -89,7 +101,7 @@ namespace virtualization {
 
 		// Modify the basic revision ID
 		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
-		context->vmcs_region->revisionIdentifier = basicMsr.bitfield.revision_id;
+		context->vmcs_region->revisionIdentifier = basicMsr.fields.revision_id;
 
 		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmcs_region).QuadPart;
 		operationStatus = __vmx_vmclear(&physicalAllocatedVMX);
@@ -111,14 +123,23 @@ namespace virtualization {
 	cleanup:
 		return status;
 	}
+	static void vmexit_handler() {
+		MDbgPrint("OH NO! THEY USED VMEXIT\n");
+	}
 
 	NTSTATUS PopulateActiveVMCS() {
 		NTSTATUS status = STATUS_SUCCESS;
+
+		processor::VmxBasicMsr basicMsr{ 0 };
+		basicMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
+
+		bool consult_true_msr = basicMsr.bitfield.bit55 == 1;
 
 		PinBasedControls vm_pin_exec_ctrls{ 0 };
 		VMExecCtrlFields vm_exec_ctrl_fields{ 0 };
 		SecondaryVMExecCtrls vm_secondary_ctrl_fields{ 0 };
 
+		EPTP ept_pointer{ 0 };
 
 		processor::Cr0 new_guest_cr0{0};
 		processor::Cr3 new_guest_cr3{0};
@@ -129,6 +150,10 @@ namespace virtualization {
 		processor::natural_width sysenter_esp_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEsp));
 		processor::natural_width sysenter_eip_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEip)); 
 		UINT64 sysenter_cs_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterCs));
+		
+		const auto pinbased_ctls_msr = (consult_true_msr) ? msr::intel_e::kIa32VmxTruePinbasedCtls : msr::intel_e::kIa32VmxPinbasedCtls;
+		const auto procbased_ctls_msr = (consult_true_msr) ? msr::intel_e::kIa32VmxTrueProcbasedCtls : msr::intel_e::kIa32VmxProcbasedCtls;
+		const auto sec_procbased_ctls_msr = msr::intel_e::kIa32VmxProcbasedCtls2;
 
 		new_guest_cr0.all = 0x60000010;
 		new_guest_cr3.all = 0;
@@ -237,12 +262,14 @@ namespace virtualization {
 		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostIa32SysenterEip, sysenter_eip_msr);
 		
 		// Registers
+
 #ifdef __64BIT__
 		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_rsp());
 #else
 		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_esp());
 #endif
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRip, reinterpret_cast<processor::natural_width>(_ReturnAddress()));
+		// status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, reinterpret_cast<processor::natural_width>(&custom_stack));
+		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostRip, reinterpret_cast<processor::natural_width>(&vmexit_handler));
 
 		// Control Registers
 		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr0, __readcr0());
@@ -256,21 +283,32 @@ namespace virtualization {
 		 /**
 		  *  Primary Control fields
 		  */
-
+		
+		vm_pin_exec_ctrls.all = ModifyControlValue(pinbased_ctls_msr, vm_pin_exec_ctrls.all);
 		status = WriteVMCSField32(vmcs_field_encoding::kControlPinBasedVmExecutionControls, vm_pin_exec_ctrls.all);
 
 		vm_exec_ctrl_fields.fields.secondControls = 1;
+		vm_exec_ctrl_fields.all = ModifyControlValue(procbased_ctls_msr, vm_exec_ctrl_fields.all);
 		status = WriteVMCSField32(vmcs_field_encoding::kControlPrimaryProcessorVmExecutionControls, vm_exec_ctrl_fields.all);
 
 		vm_secondary_ctrl_fields.fields.enableEPT = 1;
+		
 		// vm_secondary_ctrl_fields.fields.enableVPID = 1;
+		vm_secondary_ctrl_fields.all = ModifyControlValue(sec_procbased_ctls_msr, vm_secondary_ctrl_fields.all);
 		status = WriteVMCSField32(vmcs_field_encoding::kControlSecondaryProcessorVmExecutionControls, vm_secondary_ctrl_fields.all);
 
 		// Use EPT
 		// TODO: Implement EPTP stuff
 		// TODO: Implement PML4, PDPT, PD, PT for guest physical -> host physical translation
 		// TODO: Replace `vm_secondary_ctrl_fields.all` with `eptp`
-		status = WriteVMCSField64(vmcs_field_encoding::kControlEPTPFull, vm_secondary_ctrl_fields.all);
+
+		// Walk length is 4 (we use a 4-level paging scheme)
+		ept_pointer.fields.walkPathMinusOne = 3;
+		UINT_PTR pml4_address = reinterpret_cast<UINT_PTR>(processor_context::kProcessorContext->pml4_entries);
+		pml4_address &= AcquireMaxPhysicalAddress();
+
+		ept_pointer.fields.addressPlusReserved = MmGetPhysicalAddress(reinterpret_cast<PVOID>(pml4_address)).QuadPart;
+		status = WriteVMCSField64(vmcs_field_encoding::kControlEPTPFull, ept_pointer.all);
 
 	// cleanup:
 		return status;
@@ -297,6 +335,8 @@ namespace virtualization {
 	NTSTATUS PrintVMXError() {
 		NTSTATUS status = STATUS_SUCCESS;
 		UINT32 instruction_error = 0;
+		ExitReason exit_reason{0};
+		exit_reason.all = 0;
 
 		status = ReadVMCSField32(vmcs_field_encoding_e::kVmInstructionError, &instruction_error);
 
@@ -304,10 +344,19 @@ namespace virtualization {
 			MDbgPrint("Encountered an error but couldn't read instruction error from vmcs.\n");
 			goto cleanup;
 		}
+		
+		status = ReadVMCSField32(vmcs_field_encoding_e::kExitReason, &exit_reason.all);
+		if (!NT_SUCCESS(status)) {
+			MDbgPrint("Encountered an error but couldn't read exit reason from vmcs.\n");
+			goto cleanup;
+		}
 
 		MDbgPrint("Encountered an error: %s (status code %ld).\n", 
 			InstructionErrorToString(static_cast<UINT32>(instruction_error)), 
 			instruction_error);
+		MDbgPrint("Basic exit reason: %s (exit reason %X).\n",
+			BasicExitReasonToString(static_cast<UINT32>(exit_reason.all)),
+			exit_reason);
 
 	cleanup:
 		return status;
@@ -318,11 +367,9 @@ namespace virtualization {
 		UINT64 vmcs_physical_addr = NULL;
 		unsigned int operation_status = 0;
 
-		operation_status = __vmx_vmptrld(&vmcs_physical_addr);
-		if (operation_status != 0) {
-			if (operation_status == 1) {
-				PrintVMXError();
-			}
+		__vmx_vmptrst(&vmcs_physical_addr);
+		if (vmcs_physical_addr == -1) {
+			PrintVMXError();
 			status = STATUS_FAILED_VMPTRLD;
 			goto cleanup;
 		}
