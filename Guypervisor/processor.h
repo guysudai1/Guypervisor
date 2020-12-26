@@ -10,19 +10,19 @@
 #endif
 
 extern "C" {
-	UINT16 GetEsSelector();
-	UINT16 GetCsSelector();
-	UINT16 GetSsSelector();
-	UINT16 GetDsSelector();
-	UINT16 GetFsSelector();
-	UINT16 GetGsSelector();
-	UINT16 GetLdtrSelector();
-	UINT16 GetTrSelector();
+	inline UINT16 GetEsSelector();
+	inline UINT16 GetCsSelector();
+	inline UINT16 GetSsSelector();
+	inline UINT16 GetDsSelector();
+	inline UINT16 GetFsSelector();
+	inline UINT16 GetGsSelector();
+	inline UINT16 GetLdtrSelector();
+	inline UINT16 GetTrSelector();
 
 #ifdef __64BIT__
-	UINT64 __read_rsp();
+	inline UINT64 __read_rsp();
 #else
-	UINT32 __read_esp();
+	inline UINT32 __read_esp();
 #endif
 }
 
@@ -231,10 +231,11 @@ namespace processor {
 
 	// IA32_VMX_BASIC
 	typedef union {
+		Bitfield64 bitfield;
 		struct {
 			unsigned revision_id : 32;          // [0:31]
 			unsigned reserved3 : 32;            // [32:63]
-		} bitfield;
+		} fields;
 		UINT64 all;
 	} VmxBasicMsr;
 
