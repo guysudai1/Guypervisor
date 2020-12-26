@@ -13,6 +13,11 @@ namespace msr {
 		kIa32SysenterCs				= 0x174,		// IA32_SYSENTER_CS
 		kIa32SysenterEsp			= 0x175,		// IA32_SYSENTER_ESP
 		kIa32SysenterEip			= 0x176,		// IA32_SYSENTER_EIP
+		kIa32VmxPinbasedCtls		= 0x481,		// IA32_VMX_PINBASED_CTLS
+		kIa32VmxTruePinbasedCtls	= 0x48D,		// IA32_VMX_TRUE_PINBASED_CTLS
+		kIa32VmxProcbasedCtls		= 0x482,		// IA32_VMX_PROCBASED_CTLS 
+		kIa32VmxTrueProcbasedCtls	= 0x48E,		// IA32_VMX_TRUE_PROCBASED_CTLS
+		kIa32VmxProcbasedCtls2		= 0x48B,		// IA32_VMX_PROCBASED_CTLS2
 	};
 }
 
