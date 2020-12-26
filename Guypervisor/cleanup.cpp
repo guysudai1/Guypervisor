@@ -6,12 +6,26 @@
 
 constexpr ULONG kGuypervisorTag = 'GuyP';
 
+void* operator new[](size_t count)
+{
+    // Allocate new device object in the nonpaged-pool
+    void* ret_addr = ExAllocatePoolWithTag(NonPagedPoolExecute, count, kGuypervisorTag);
+    if (ret_addr == nullptr) {
+        MDbgPrint("Couldn't allocate %X bytes\n", count);
+        // TODO: Handle bad memory allocation
+        goto cleanup;
+    }
+
+cleanup:
+    return ret_addr;
+}
+
 void* operator new(size_t count)
 {
     // Allocate new device object in the nonpaged-pool
     void* ret_addr = ExAllocatePoolWithTag(NonPagedPoolExecute, count, kGuypervisorTag);
     if (ret_addr == nullptr) {
-        MDbgPrint("Couldn't allocate %ld bytes\n", count);
+        MDbgPrint("Couldn't allocate %X bytes\n", count);
         // TODO: Handle bad memory allocation
         goto cleanup;
     }
