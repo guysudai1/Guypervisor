@@ -2,12 +2,13 @@
 #define __PROCESSOR_CONTEXT_H
 
 #include "vmcs.h"
+#include "paging.h"
 
 namespace processor_context {
 	struct processorContext {
 		VMCS* vmxon_region;
 		VMCS* vmcs_region;
-		// TODO: Add EPT pointer here
+		PML4E* pml4_entries;
 	};
 
 	NTSTATUS InitializeProcessorContext();

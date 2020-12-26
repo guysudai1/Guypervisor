@@ -2,6 +2,7 @@
 
 #include "virtual_addr_helpers.h"
 #include "print.h"
+#include "cleanup.h"
 
 #define IF_NOT_NULLPTR_THEN_FREE_AND_SET_NULLPTR(VAR) \
   do { \
@@ -37,6 +38,9 @@ NTSTATUS processor_context::InitializeProcessorContext()
 		goto cleanup;
 	}
 
+	kProcessorContext->pml4_entries = new PML4E[kPml4EntryCount];
+	RtlZeroMemory(kProcessorContext->pml4_entries, kPml4EntryCount);
+
 cleanup:
 	return status;
 }
@@ -46,6 +50,9 @@ void processor_context::FreeProcessorContext()
 	IF_NOT_NULLPTR_THEN_FREE_AND_SET_NULLPTR(kProcessorContext->vmxon_region);
 	IF_NOT_NULLPTR_THEN_FREE_AND_SET_NULLPTR(kProcessorContext->vmcs_region);
 
+	if (kProcessorContext->pml4_entries != nullptr) {
+		delete kProcessorContext->pml4_entries;
+	}
 	if (kProcessorContext != nullptr)
 	{
 		delete kProcessorContext;
