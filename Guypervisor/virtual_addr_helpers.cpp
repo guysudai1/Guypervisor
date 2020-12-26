@@ -6,13 +6,12 @@
 #include "cpuid.h"
 #include "print.h"
 
-void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys)
+LONGLONG AcquireMaxPhysicalAddress()
 {
 	/*
 	2. Software can determine a processor’s physical - address width by executing CPUID with 80000008H in EAX.The physical - address
 		width is returned in bits 7:0 of EAX.
 	*/
-	PHYSICAL_ADDRESS MAX_PHYS = { 0 };
 	processor::CPUInfo currentCpu;
 	unsigned char phys_width;
 
@@ -20,9 +19,8 @@ void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys)
 
 	// Acquire bits 7:0
 	phys_width = currentCpu.regs.eax.all & 0xff; 
-	MAX_PHYS.QuadPart = static_cast<LONGLONG>(1) << static_cast<LONGLONG>(phys_width);
 
-	maxPhys = MAX_PHYS;
+	return static_cast<LONGLONG>(1) << static_cast<LONGLONG>(phys_width);
 }
 
 PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize)
@@ -31,7 +29,7 @@ PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize
 	PVOID allocatedMemory;
 
 	// Acquire max physical address
-	AcquireMaxPhysicalAddress(maxPhysical);
+	maxPhysical.QuadPart = AcquireMaxPhysicalAddress();
 
 	// Allocate 4KB aligned memory (not aligned yet)
 	allocatedMemory = MmAllocateContiguousMemory(size + alignmentSize, maxPhysical);

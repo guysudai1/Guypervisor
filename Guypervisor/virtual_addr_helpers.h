@@ -5,7 +5,7 @@
 
 #include "custom_status_codes.h"
 
-void AcquireMaxPhysicalAddress(PHYSICAL_ADDRESS& maxPhys);
+LONGLONG AcquireMaxPhysicalAddress();
 PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize);
 
 BOOLEAN WritePhysicalMemory(HANDLE PhysicalMemory, PVOID Address, SIZE_T Length);
