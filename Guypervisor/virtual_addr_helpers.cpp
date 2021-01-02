@@ -20,7 +20,7 @@ LONGLONG AcquireMaxPhysicalAddress()
 	// Acquire bits 7:0
 	phys_width = currentCpu.regs.eax.all & 0xff; 
 
-	return static_cast<LONGLONG>(1) << static_cast<LONGLONG>(phys_width);
+	return (static_cast<LONGLONG>(1) << (static_cast<LONGLONG>(phys_width))) - 1;
 }
 
 PVOID AllocateContingiousPhysicalMemoryAligned(SIZE_T size, SIZE_T alignmentSize)

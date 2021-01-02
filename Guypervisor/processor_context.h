@@ -4,14 +4,20 @@
 #include "vmcs.h"
 #include "paging.h"
 
+constexpr uintptr_t kAlignmentSize = 4 * 1024;// 4KB
+constexpr size_t kStackSize = 12 * PAGE_SIZE;
+
 namespace processor_context {
 	struct processorContext {
 		VMCS* vmxon_region;
 		VMCS* vmcs_region;
-		PML4E* pml4_entries;
+		PML4E* ept_pml4_entries;
+		UINT8* msr_bitmap;
+		UINT8* guest_stack;
 	};
 
 	NTSTATUS InitializeProcessorContext();
+	NTSTATUS InitializeEPT();
 	void FreeProcessorContext();
 	
 	extern processorContext* kProcessorContext;
