@@ -4,7 +4,7 @@
 #define __PAGING_H
 
 constexpr unsigned int kPml4EntryCount = 512;
-constexpr unsigned int kPageDirectoryPtrEntryCount = 512;
+constexpr unsigned int kPdptEntryCount = 512;
 constexpr unsigned int kPageDirectoryEntryCount = 512;
 constexpr unsigned int kPageTableEntryCount = 512;
 

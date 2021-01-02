@@ -75,6 +75,16 @@ DriverEntry(
         goto cleanup;
     }
 
+    /*
+    TODO: UNCOMMENT EPT
+    */
+    /*status = processor_context::InitializeEPT();
+    if (!NT_SUCCESS(status))
+    {
+        MDbgPrint("Failed initializing the EPT with error: %d\n", status);
+        goto cleanup;
+    }*/
+
 cleanup:
     if (!NT_SUCCESS(status)) {
         if (kGuypervisor != nullptr) 
