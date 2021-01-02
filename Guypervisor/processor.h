@@ -3,6 +3,8 @@
 
 #include <wdm.h>
 
+constexpr auto kRplMask = 3;
+
 #ifdef _WIN64  
 #define __64BIT__
 #else
@@ -18,6 +20,11 @@ extern "C" {
 	inline UINT16 GetGsSelector();
 	inline UINT16 GetLdtrSelector();
 	inline UINT16 GetTrSelector();
+
+	// Need to define it for intrin.h
+	void _sgdt(void * dest); 
+
+	inline UINT32 __lar(UINT16 segment);
 
 #ifdef __64BIT__
 	inline UINT64 __read_rsp();
@@ -54,7 +61,59 @@ namespace processor {
 		UINT16 tr;
 	} segmentSelector;
 
+#pragma pack(push,1)
+
+	typedef struct _gdtEntry {
+		UINT16 limit0;
+		UINT16 base0;
+		struct {
+			UINT16 base1 : 8;
+			UINT16 type : 4;
+			UINT16 s : 1;
+			UINT16 dpl : 2;
+			UINT16 p : 1;
+		};
+		struct {
+			UINT16 limit1 : 4;
+			UINT16 avl : 1;
+			UINT16 l : 1;
+			UINT16 d : 1;
+			UINT16 g : 1;
+			UINT16 base2 : 8;
+		};
+	} GDTEntry;
+
+#pragma pack(pop)
+
+	typedef union _vmxGdtEntry {
+		struct {
+			UINT32 limit;		// First 16 bits of the limit
+			UINT32 base;	// First 16 bits of the base
+			UINT32 access;
+		} fields;
+	} vmxGdtEntry;
+
+#pragma pack(push,1)
+
+	typedef struct _gdtr {
+		UINT16 limit;
+		UINT64 base;
+	} GDTR;
+
+
+#pragma pack(pop)
+
+#pragma pack(push,1)
+
+	typedef struct _idtr {
+		UINT16 limit;
+		UINT64 base;
+	} IDTR;
+
+#pragma pack(pop)
+
 	void LoadSegmentSelectors(segmentSelector* segment_selector);
+	void ReadGDTEntry(GDTR gdt_base, UINT16 selector, vmxGdtEntry* entry);
 
 	typedef struct _Bitfield64 {
 		unsigned char bit0 : 1;
@@ -213,31 +272,6 @@ namespace processor {
 			char secondPart[4];	// edx
 		} vendorID;
 	} VendorCPUInfo;
-
-	// IA32_FEATURE_CONTROL_MSR
-	typedef union {
-		struct {
-			unsigned lock : 1;                  //!< [0]
-			unsigned enable_smx : 1;            //!< [1]
-			unsigned enable_vmxon : 1;          //!< [2]
-			unsigned reserved1 : 5;             //!< [3:7]
-			unsigned enable_local_senter : 7;   //!< [8:14]
-			unsigned enable_global_senter : 1;  //!< [15]
-			unsigned reserved2 : 16;            //!<
-			unsigned reserved3 : 32;            //!< [16:63]
-		} bitfield;
-		UINT64 all;
-	} FeatureControlMsr;
-
-	// IA32_VMX_BASIC
-	typedef union {
-		Bitfield64 bitfield;
-		struct {
-			unsigned revision_id : 32;          // [0:31]
-			unsigned reserved3 : 32;            // [32:63]
-		} fields;
-		UINT64 all;
-	} VmxBasicMsr;
 
 	/*
 		Control registers are documented at page 2860 all volumes.
