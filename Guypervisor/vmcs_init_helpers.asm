@@ -58,6 +58,12 @@ GetTrSelector PROC
     ret
 GetTrSelector ENDP
 
+__lar PROC
+    ; Loads access rights into descriptor
+    lar rax, rcx
+    ret
+__lar ENDP
+
 __read_rsp PROC
     mov rax, rsp
     add rax, 8
