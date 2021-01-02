@@ -433,78 +433,84 @@ typedef union {
 	UINT64 all;
 } EPTP;
 
-typedef struct {
-	UINT32 reserved1 : 2;
+typedef union {
+	struct {
+		UINT32 reserved1 : 2;
 
-	UINT32 saveDebugCtrls : 1;
+		UINT32 saveDebugCtrls : 1;
 
-	UINT32 reserved2 : 6;
+		UINT32 reserved2 : 6;
 
-	// Must be 1 on intel x64
-	UINT32 hostAddrSpaceSize : 1;
+		// Must be 1 on intel x64
+		UINT32 hostAddrSpaceSize : 1;
 
-	UINT32 reserved3 : 2;
+		UINT32 reserved3 : 2;
 
-	// Load IA32_PERF_GLOBAL_CTRL on VMExit
-	UINT32 loadPerfGlobalCtrlOnExit : 1;
+		// Load IA32_PERF_GLOBAL_CTRL on VMExit
+		UINT32 loadPerfGlobalCtrlOnExit : 1;
 
-	UINT32 reserved4 : 2;
+		UINT32 reserved4 : 2;
 
-	/*
-	This control affects VM exits due to external interrupts:
-		• If such a VM exit occurs and this control is 1, the logical processor acknowledges the
-		interrupt controller, acquiring the interrupt’s vector. The vector is stored in the VM-exit
-		interruption-information field, which is marked valid.
-		• If such a VM exit occurs and this control is 0, the interrupt is not acknowledged and the
-		VM-exit interruption-information field is marked invalid.
-	*/
-	UINT32 acknowledgeInterruptOnExit : 1;
+		/*
+		This control affects VM exits due to external interrupts:
+			• If such a VM exit occurs and this control is 1, the logical processor acknowledges the
+			interrupt controller, acquiring the interrupt’s vector. The vector is stored in the VM-exit
+			interruption-information field, which is marked valid.
+			• If such a VM exit occurs and this control is 0, the interrupt is not acknowledged and the
+			VM-exit interruption-information field is marked invalid.
+		*/
+		UINT32 acknowledgeInterruptOnExit : 1;
 
-	UINT32 reserved5 : 2;
+		UINT32 reserved5 : 2;
 
-	UINT32 savePATMsrOnExit : 1;
-	UINT32 loadPATMsrOnExit : 1;
+		UINT32 savePATMsrOnExit : 1;
+		UINT32 loadPATMsrOnExit : 1;
 
-	UINT32 saveEFERMsrOnExit : 1;
-	UINT32 loadEFERMsrOnExit : 1;
+		UINT32 saveEFERMsrOnExit : 1;
+		UINT32 loadEFERMsrOnExit : 1;
 
-	UINT32 savePreemptionTimerOnExit : 1;
+		UINT32 savePreemptionTimerOnExit : 1;
 
-	UINT32 clearBNDCFGSOnExit : 1;
+		UINT32 clearBNDCFGSOnExit : 1;
 
-	UINT32 concealVMExitPt : 1;
+		UINT32 concealVMExitPt : 1;
 
-	UINT32 reserved6 : 7;
+		UINT32 reserved6 : 7;
+	} fields;
+	UINT32 all;
 } VMExitCtrlFields;
 
-typedef struct {
-	UINT32 reserved1 : 2;
+typedef union {
+	struct {
+		UINT32 reserved1 : 2;
 
-	UINT32 loadDebugCtrls : 1;
+		UINT32 loadDebugCtrls : 1;
 
-	UINT32 reserved2 : 6;
+		UINT32 reserved2 : 6;
 
-	// Allows x64 bit processors to enter x32 bit mode after tentry
-	UINT32 ia32ModeGuest : 1;
+		// Allows x64 bit processors to enter x32 bit mode after tentry
+		UINT32 ia32ModeGuest : 1;
 
-	// Entry to SMM Mode
-	UINT32 entryToSMM : 1;
+		// Entry to SMM Mode
+		UINT32 entryToSMM : 1;
 
-	// If set to 1, the default treatment of SMIs and SMM is in effect after the VM entry
-	UINT32 deactivateDualMonitor : 1;
+		// If set to 1, the default treatment of SMIs and SMM is in effect after the VM entry
+		UINT32 deactivateDualMonitor : 1;
 
-	UINT32 reserved3 : 1;
+		UINT32 reserved3 : 1;
 
-	// Load IA32_PERF_GLOBAL_CTRL on VMExit
-	UINT32 loadPerfGlobalCtrlOnEntry : 1;
+		// Load IA32_PERF_GLOBAL_CTRL on VMExit
+		UINT32 loadPerfGlobalCtrlOnEntry : 1;
 
-	UINT32 loadPATMsrOnEntry : 1;
-	UINT32 loadEFERMsrOnEntry : 1;
-	UINT32 loadBNDCFGSOnEntry : 1;
+		UINT32 loadPATMsrOnEntry : 1;
+		UINT32 loadEFERMsrOnEntry : 1;
+		UINT32 loadBNDCFGSOnEntry : 1;
 
-	UINT32 concealVMEntryPt : 1;
+		UINT32 concealVMEntryPt : 1;
 
-	UINT32 reserved4 : 14;
+		UINT32 reserved4 : 14;
+	} fields;
+	UINT32 all;
 } VMEntryCtrlFields;
 
 
