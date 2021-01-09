@@ -1,4 +1,5 @@
 #include "processor.h"
+#include "print.h"
 
 void processor::LoadSegmentSelectors(segmentSelector* segment_selector)
 {
@@ -23,6 +24,7 @@ void processor::ReadGDTEntry(GDTR gdt, UINT16 selector, vmxGdtEntry* entry)
 
     if ((selector & 3) == 1) {
         // LDT
+        MDbgPrint("Failed getting gdt entry base. LDT implementation needed.\n");
         return;
     }
 
@@ -31,5 +33,5 @@ void processor::ReadGDTEntry(GDTR gdt, UINT16 selector, vmxGdtEntry* entry)
 
    entry->fields.limit = __segmentlimit(selector);
    entry->fields.access = __lar(selector);
-   entry->fields.base = ((tmp_entry->base2 << 24) | (tmp_entry->base1 << 16) | (tmp_entry->base0)) & 0xFFFFFFFF;
+   entry->fields.base = ((tmp_entry->base2 << 24) | (tmp_entry->base1 << 16) | (tmp_entry->base0)) & MAXULONG;
 }

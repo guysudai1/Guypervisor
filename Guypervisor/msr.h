@@ -23,6 +23,8 @@ namespace msr {
 		kIa32VmxTrueEntryCtls		= 0x490,		// IA32_VMX_TRUE_ENTRY_CTLS
 		kIa32VmxExitCtls			= 0x483,		// IA32_VMX_EXIT_CTLS
 		kIa32VmxTrueExitCtls		= 0x48F,		// IA32_VMX_TRUE_EXIT_CTLS
+		kIa32FsBase					= 0xc0000100,	// IA32_FS_BASE
+		kIa32GsBase					= 0xc0000101,	// IA32_GS_BASE
 	};
 
 	// IA32_FEATURE_CONTROL_MSR

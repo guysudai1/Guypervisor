@@ -102,6 +102,17 @@ void processor_context::FreeProcessorContext()
 		kProcessorContext->ept_pml4_entries = nullptr;
 		delete kProcessorContext->ept_pml4_entries;
 	}
+
+	//if (kProcessorContext->io_bitmap_a != nullptr) {
+	//	kProcessorContext->io_bitmap_a = nullptr;
+	//	delete kProcessorContext->io_bitmap_a;
+	//}
+
+	//if (kProcessorContext->io_bitmap_b != nullptr) {
+	//	kProcessorContext->io_bitmap_b = nullptr;
+	//	delete kProcessorContext->io_bitmap_b;
+	//}
+
 	if (kProcessorContext != nullptr)
 	{
 		kProcessorContext = nullptr;

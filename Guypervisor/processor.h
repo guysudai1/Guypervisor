@@ -3,7 +3,7 @@
 
 #include <wdm.h>
 
-constexpr auto kRplMask = 3;
+constexpr UINT16 kRplMask = 3;
 
 #ifdef _WIN64  
 #define __64BIT__
@@ -69,7 +69,7 @@ namespace processor {
 		struct {
 			UINT16 base1 : 8;
 			UINT16 type : 4;
-			UINT16 s : 1;
+			UINT16 system : 1;
 			UINT16 dpl : 2;
 			UINT16 p : 1;
 		};

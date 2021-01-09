@@ -12,6 +12,9 @@ namespace processor_context {
 		VMCS* vmxon_region;
 		VMCS* vmcs_region;
 		PML4E* ept_pml4_entries;
+		//UINT8* io_bitmap_a;
+		//UINT8* io_bitmap_b;
+
 		UINT8* msr_bitmap;
 		UINT8* guest_stack;
 	};
