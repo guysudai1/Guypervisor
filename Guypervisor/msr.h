@@ -1,6 +1,9 @@
 #ifndef __MSR_H
 #define __MSR_H
 
+#include <intrin.h>
+#include <wdm.h>
+
 namespace msr {
 	enum class intel_e : unsigned long {
 		kIa32FeatureControl			= 0x3A,			// IA32_FEATURE_CONTROL_MSR
@@ -143,6 +146,8 @@ namespace msr {
 		} fields;
 		UINT64 all;
 	} VmxMiscMsr;
+
+	unsigned long long ReadMsr(intel_e msr_num);
 }
 
 #endif __MSR_H

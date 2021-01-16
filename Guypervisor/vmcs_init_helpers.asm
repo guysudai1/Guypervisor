@@ -7,8 +7,14 @@ public GetFsSelector
 public GetGsSelector
 public GetLdtrSelector
 public GetTrSelector
+public guest_code
 public __read_rsp
 public __read_esp
+
+guest_code PROC 
+    mov rax, 1
+    rdtsc 
+guest_code ENDP
 
 GetEsSelector PROC
     ; Returns es selector register

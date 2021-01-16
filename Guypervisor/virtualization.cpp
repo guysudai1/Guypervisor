@@ -17,6 +17,8 @@
 #include "error_codes.h"
 #include "processor_context.h"
 
+extern "C" void guest_code();
+
 namespace virtualization {
 	NTSTATUS EnterVmxonMode()
 	{
@@ -37,14 +39,14 @@ namespace virtualization {
 
 		// Set CR0 Fixed values
 		cr0.all = __readcr0();
-		cr0.all |= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr0Fixed0));
-		cr0.all &= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr0Fixed1));
+		cr0.all |= msr::ReadMsr(msr::intel_e::kIa32VmxCr0Fixed0);
+		cr0.all &= msr::ReadMsr(msr::intel_e::kIa32VmxCr0Fixed1);
 		__writecr0(cr0.all);
 
 		// Set CR4 Fixed values
 		cr4.all = __readcr4();
-		cr4.all |= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr4Fixed0));
-		cr4.all &= __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxCr0Fixed1));
+		cr4.all |= msr::ReadMsr(msr::intel_e::kIa32VmxCr4Fixed0);
+		cr4.all &= msr::ReadMsr(msr::intel_e::kIa32VmxCr0Fixed1);
 		__writecr4(cr4.all);
 
 		// Set CR4.VMXE = 1
@@ -53,7 +55,7 @@ namespace virtualization {
 		__writecr4(cr4.all);
 
 		// readmsr 0x3A and modify lock bit
-		controlMsr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32FeatureControl));
+		controlMsr.all = msr::ReadMsr(msr::intel_e::kIa32FeatureControl);
 
 		// Lock bit = 1
 		controlMsr.bitfield.lock = 1;
@@ -64,7 +66,7 @@ namespace virtualization {
 				   controlMsr.all);
 
 		// Modify the basic revision ID
-		basic_msr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
+		basic_msr.all = msr::ReadMsr(msr::intel_e::kIa32VmxBasic);
 		context->vmxon_region->revisionIdentifier = basic_msr.fields.revision_id;
 
 		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmxon_region).QuadPart;
@@ -81,7 +83,7 @@ namespace virtualization {
 
 	UINT32 ModifyControlValue(msr::intel_e msr, UINT32 requested_value) {
 		LARGE_INTEGER msr_value = {};
-		msr_value.QuadPart = __readmsr(static_cast<unsigned long>(msr));
+		msr_value.QuadPart = msr::ReadMsr(msr);
 
 		// 0 In high word means can't be zero 
 		requested_value &= msr_value.HighPart;
@@ -99,7 +101,7 @@ namespace virtualization {
 		unsigned char operationStatus = 0;
 
 		// Modify the basic revision ID
-		basic_msr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
+		basic_msr.all = msr::ReadMsr(msr::intel_e::kIa32VmxBasic);
 		context->vmcs_region->revisionIdentifier = basic_msr.fields.revision_id;
 
 		physicalAllocatedVMX = MmGetPhysicalAddress(context->vmcs_region).QuadPart;
@@ -123,10 +125,10 @@ namespace virtualization {
 		return status;
 	}
 	static void test_runner_handler() {
-		processor::CPUInfo currentCpu;
-		__cpuid(reinterpret_cast<int*>(&currentCpu), 0);
+		// processor::CPUInfo currentCpu;
+		// __cpuid(reinterpret_cast<int*>(&currentCpu), 0);
 
-		__writedr(0, 0);
+		// __writedr(7, 0);
 	}
 
 	static void vmexit_handler() {
@@ -156,7 +158,7 @@ namespace virtualization {
 		EPTP ept_pointer{ 0 };
 
 		msr::VmxBasicMsr basic_msr{ 0 };
-		basic_msr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxBasic));
+		basic_msr.all = msr::ReadMsr(msr::intel_e::kIa32VmxBasic);
 
 		const bool consult_true_msr = basic_msr.bitfield.bit55 == 1; // Check whether to use the TRUE version of the MSRs
 
@@ -171,7 +173,7 @@ namespace virtualization {
 		//ept_pointer.fields.memoryType = 6; // Cache WriteBack
 		//ept_pointer.fields.walkPathMinusOne = 3; // Walk length is 4 (we use a 4-level paging scheme)
 		//auto pml4_address = processor_context::kProcessorContext->ept_pml4_entries;
-		//auto physical_addr = MmGetPhysicalAddress(reinterpret_cast<PVOID>(pml4_address)).QuadPart / PAGE_SIZE;
+		//auto physical_addr = MmGetPhysicalAddress(reinterpret_cast<PVOID>(pml4_address)).QuadPart;
 		//ept_pointer.fields.addressPlusReserved = physical_addr;
 		//ept_pointer.fields.addressPlusReserved &= AcquireMaxPhysicalAddress();
 		//MDbgPrint("Pml4 table address: %X\n", pml4_address);
@@ -205,12 +207,13 @@ namespace virtualization {
 		/**
 		 *  Primary Control fields
 		 */
-		vm_exec_ctrl_fields.fields.cr3LoadExit = 1;
-		vm_exec_ctrl_fields.fields.hltExiting = 1;
+		// vm_exec_ctrl_fields.fields.cr3LoadExit = 1;
+		// vm_exec_ctrl_fields.fields.hltExiting = 1;
+		vm_exec_ctrl_fields.fields.rdstcExit = 1;
 		// vm_exec_ctrl_fields.fields.movDrExit = 1;
 		// vm_exec_ctrl_fields.fields.virtualizeMsrBitmaps = 1;
 		// vm_exec_ctrl_fields.fields.virtualizeIoBitmaps = 1;
-		vm_exec_ctrl_fields.fields.secondControls = 1;
+		vm_exec_ctrl_fields.fields.activateSecondaryControls = 1;
 		vm_exec_ctrl_fields.all = ModifyControlValue((consult_true_msr) 
 													 ? msr::intel_e::kIa32VmxTrueProcbasedCtls 
 													 : msr::intel_e::kIa32VmxProcbasedCtls, vm_exec_ctrl_fields.all);
@@ -257,8 +260,8 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestCsSelector, segment_selector.cs);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestCsLimit, current_entry.fields.limit);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestCsAccessRights, current_entry.fields.access);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase, 0);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostCsSelector, segment_selector.cs & ~kRplMask);
 
 		/**
@@ -268,8 +271,8 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestSsSelector, segment_selector.ss);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestSsLimit, current_entry.fields.limit);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestSsAccessRights, current_entry.fields.access);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase, 0);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostSsSelector, segment_selector.ss & ~kRplMask);
 
 		/**
@@ -279,8 +282,8 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestDsSelector, segment_selector.ds);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestDsLimit, current_entry.fields.limit);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestDsAccessRights, current_entry.fields.access);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDsBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDsBase, 0);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostDsSelector, segment_selector.ds & ~kRplMask);
 
 		/**
@@ -290,8 +293,8 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestEsSelector, segment_selector.es);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestEsLimit, current_entry.fields.limit);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestEsAccessRights, current_entry.fields.access);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestEsBase, 0);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestEsBase, current_entry.fields.base);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestEsBase, current_entry.fields.base);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostEsSelector, segment_selector.es & ~kRplMask);
 
 
@@ -302,10 +305,10 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestFsSelector, segment_selector.fs);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestFsLimit, current_entry.fields.access);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestFsAccessRights, current_entry.fields.access);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, current_entry.fields.base);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, __readmsr((unsigned long)msr::intel_e::kIa32FsBase));
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, current_entry.fields.base);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, __readmsr((unsigned long)msr::intel_e::kIa32FsBase));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, msr::ReadMsr(msr::intel_e::kIa32FsBase));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, msr::ReadMsr(msr::intel_e::kIa32FsBase));
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostFsSelector, segment_selector.fs & ~kRplMask);
 
 		/**
@@ -315,10 +318,10 @@ namespace virtualization {
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestGsSelector, segment_selector.gs);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestGsLimit, current_entry.fields.access);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestGsAccessRights, current_entry.fields.access);
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, current_entry.fields.base);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, __readmsr((unsigned long)msr::intel_e::kIa32GsBase));
-		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, current_entry.fields.base);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, __readmsr((unsigned long)msr::intel_e::kIa32GsBase));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, msr::ReadMsr(msr::intel_e::kIa32GsBase));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, current_entry.fields.base);
+		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, msr::ReadMsr(msr::intel_e::kIa32GsBase));
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostGsSelector, segment_selector.gs & ~kRplMask);
 
 		/**
@@ -361,14 +364,12 @@ namespace virtualization {
 		// Register Loading Stage
 		//
 		processor::Cr0 guest_cr0_shadow{ 0 };
-		processor::Cr3 guest_cr3_shadow{ 0 };
 		processor::Cr4 guest_cr4_shadow{ 0 };
 
 		processor::Cr0 guest_cr0_mask{ 0 };
 		processor::Cr4 guest_cr4_mask{ 0 };
 
 		guest_cr0_shadow.all = __readcr0();
-		guest_cr3_shadow.all = __readcr3();
 		guest_cr4_shadow.all = __readcr4();
 
 		/**
@@ -398,36 +399,43 @@ namespace virtualization {
 		/*
 		 *  Load debug MSR and DR7 register
 		 */
-		status |= WriteVMCSField64(vmcs_field_encoding::kGuestIa32DebugCtlFull, 0);
+		status |= WriteVMCSField64(vmcs_field_encoding::kGuestIa32DebugCtlFull, msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDr7, __readdr(7));
-	
+
+		MDbgPrint("Guest IA32_DEBUG_CTL: %X", msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
+		MDbgPrint("Guest DR7: %X", __readdr(7));
+
 		/*
 		 * Load Guest Context (RSP, RIP, RFLAGS)
 		 */
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRsp, (uintptr_t)processor_context::kProcessorContext->guest_stack + kStackSize - 8);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRip, reinterpret_cast<processor::natural_width>(&test_runner_handler));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRsp, (uintptr_t)(&processor_context::kProcessorContext->guest_stack) + kStackSize - 8);
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRip, reinterpret_cast<processor::natural_width>(&guest_code));
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestRFlags, __readeflags());
 
 		/** 
 		 * Load Host Context (RSP, RIP)
 		 */
 
-		// TODO: Make stack size dynamic / change
-		auto stack_buffer = new char[0x512];
-		RtlSecureZeroMemory(stack_buffer, 0x512);
+		MDbgPrint("Guest new RSP: %X", (uintptr_t)(&processor_context::kProcessorContext->guest_stack) + kStackSize - 8);
+		MDbgPrint("Guest Entry: %X", reinterpret_cast<processor::natural_width>(&guest_code));
+		MDbgPrint("Guest RFlags: %X", __readeflags());
 
 
 #ifdef __64BIT__
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, reinterpret_cast<unsigned long long>(stack_buffer + 0x512 - 1));
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, (uintptr_t)(&processor_context::kProcessorContext->host_stack) + kStackSize - 8);
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_rsp());
 #else
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostRsp, __read_esp());
 #endif
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostRip, reinterpret_cast<processor::natural_width>(&vmexit_handler));
 
-		UINT64 sysenter_cs_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterCs));
-		processor::natural_width sysenter_esp_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEsp));
-		processor::natural_width sysenter_eip_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEip));
+		MDbgPrint("Host new RSP: %X", (uintptr_t)(&processor_context::kProcessorContext->host_stack) + kStackSize - 8);
+		MDbgPrint("Host VMExit Handler: %X", reinterpret_cast<processor::natural_width>(&vmexit_handler));
+
+
+		UINT64 sysenter_cs_msr = msr::ReadMsr(msr::intel_e::kIa32SysenterCs);
+		processor::natural_width sysenter_esp_msr = msr::ReadMsr(msr::intel_e::kIa32SysenterEsp);
+		processor::natural_width sysenter_eip_msr = msr::ReadMsr(msr::intel_e::kIa32SysenterEip);
 
 		status |= WriteVMCSField32(vmcs_field_encoding::kHostIa32SysenterCs, (UINT32)sysenter_cs_msr);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestIa32SysenterCs, (UINT32)sysenter_cs_msr);
@@ -442,7 +450,7 @@ namespace virtualization {
 		msr::VmxMiscMsr misc_msr{ 0 };
 		misc_msr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxMisc));
 
-		// processor::natural_width debugctl_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32DebugCtl));
+		// processor::natural_width debugctl_msr = msr::ReadMsr(msr::intel_e::kIa32DebugCtl);
 		processor::natural_width sysenter_esp_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEsp));
 		processor::natural_width sysenter_eip_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEip)); 
 		UINT64 sysenter_cs_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterCs));
@@ -514,7 +522,6 @@ namespace virtualization {
 		NTSTATUS status = STATUS_SUCCESS;
 		unsigned char operationStatus = 0;
 
-		// TODO: Actually create the vmlaunch function
 		operationStatus = __vmx_vmlaunch();
 
 		if (operationStatus != 0)

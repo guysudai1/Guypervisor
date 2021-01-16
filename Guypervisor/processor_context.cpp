@@ -47,6 +47,7 @@ NTSTATUS processor_context::InitializeProcessorContext()
 	));
 
 	kProcessorContext->guest_stack = new UINT8[kStackSize];
+	kProcessorContext->host_stack = new UINT8[kStackSize];
 cleanup:
 	return status;
 }
@@ -98,6 +99,12 @@ void processor_context::FreeProcessorContext()
 		kProcessorContext->guest_stack = nullptr;
 		delete kProcessorContext->guest_stack;
 	}
+
+	if (kProcessorContext->host_stack != nullptr) {
+		kProcessorContext->host_stack = nullptr;
+		delete kProcessorContext->host_stack;
+	}
+
 	if (kProcessorContext->ept_pml4_entries != nullptr) {
 		kProcessorContext->ept_pml4_entries = nullptr;
 		delete kProcessorContext->ept_pml4_entries;

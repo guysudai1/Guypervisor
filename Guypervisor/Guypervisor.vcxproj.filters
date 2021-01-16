@@ -104,6 +104,9 @@
     <ClCompile Include="processor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="msr.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="virtualization_helpers.asm">

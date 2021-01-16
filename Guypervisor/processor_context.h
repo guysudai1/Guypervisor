@@ -17,6 +17,7 @@ namespace processor_context {
 
 		UINT8* msr_bitmap;
 		UINT8* guest_stack;
+		UINT8* host_stack;
 	};
 
 	NTSTATUS InitializeProcessorContext();

@@ -185,6 +185,7 @@
     <ClCompile Include="Driver.cpp" />
     <ClCompile Include="error_codes.cpp" />
     <ClCompile Include="irp_handlers.cpp" />
+    <ClCompile Include="msr.cpp" />
     <ClCompile Include="processor.cpp" />
     <ClCompile Include="processor_context.cpp" />
     <ClCompile Include="virtualization.cpp" />

@@ -246,72 +246,33 @@ typedef union {
 typedef union
 {
 	struct {
-		UINT32 reserved1 : 2;
-
-		// VM exit occurs at any instruction if interrupts are enabled
-		UINT32 interruptExit : 1;
-
-		// Allows time modification
-		UINT32 tscOffset : 1;
-
-		UINT32 reserved2 : 3;
-
-		// HLT causes vmexit
-		UINT32 hltExiting : 1;
-
-		UINT32 reserved3 : 1;
-
-		// INVLPG causes vmexit
-		UINT32 invlpgExit : 1;
-		// MWAIT causes vmexit
-		UINT32 mwaitExit : 1;
-		// RDSTC and RDTSCP cause vmexits
-		UINT32 rdstcExit : 1;
-
-		UINT32 reserved4 : 2;
-
-		// decides whether MOVs to CR3 cause exit
-		UINT32 cr3LoadExit : 1;
-		// decides whether MOVs from CR3 cause exit
-		UINT32 cr3StoreExit : 1;
-
-		UINT32 reserved5 : 2;
-
-		// decides whether MOVs to CR8 cause exit
-		UINT32 cr8LoadExit : 1;
-		// decides whether MOVs from CR3 cause exit
-		UINT32 cr8StoreExit : 1;
-
-		// enables TPR virtualization, and APIC virtualization
-		UINT32 useTprShadow : 1;
-
-		// exits if no virtual NMI blocking
-		UINT32 nmiWindowExit : 1;
-
-		// MOV DR causes exit
-		UINT32 movDrExit : 1;
-
-		// exits if IN, INS/INSB/INSW/INSD, OUT, OUTS/OUTSB/OUTSW/OUTSD executed
-		UINT32 unconditionalIoExit : 1;
-
-		// 0 => don't use bitmaps, 1 => use bitmaps
-		UINT32 virtualizeIoBitmaps : 1;
-
-		UINT32 reserved6 : 1;
-
-		// monitor trap flag debugging features enabled
-		UINT32 monitorTrapFlag : 1;
-
-		// virtualize MSR bitmaps - RDMSR / WRMSR
-		UINT32 virtualizeMsrBitmaps : 1;
-
-		// MONITOR Exiting 
-		UINT32 monitorExit : 1;
-		// PAUSE Exiting 
-		UINT32 pauseExit : 1;
-
-		// Activate secondary controls (whether to use a second control structure) - we will use this
-		UINT32 secondControls : 1;
+		UINT32 reserved1 : 2;					// [0:1]
+		UINT32 interruptExit : 1;				// [2] - VM exit occurs at any instruction if interrupts are enabled
+		UINT32 tscOffset : 1;					// [3] - Allows time modification
+		UINT32 reserved2 : 3;					// [4:6]
+		UINT32 hltExiting : 1;					// [7] - HLT causes vmexit	
+		UINT32 reserved3 : 1;					// [8]
+		UINT32 invlpgExit : 1;					// [9] - INVLPG causes vmexit
+		UINT32 mwaitExit : 1;					// [10] - MWAIT causes vmexit
+		UINT32 rdpmcExit : 1;					// [11] - RDTPMC cause vmexits
+		UINT32 rdstcExit : 1;					// [12] - RDSTC and RDTSCP cause vmexits
+		UINT32 reserved4 : 2;					// [13:14]
+		UINT32 cr3LoadExit : 1;					// [15] - MOVs to CR3 cause exit
+		UINT32 cr3StoreExit : 1;				// [16] - MOVs from CR3 cause exit
+		UINT32 reserved5 : 2;					// [17:18]
+		UINT32 cr8LoadExit : 1;					// [19] - MOVs to CR8 cause exit
+		UINT32 cr8StoreExit : 1;				// [20] - MOVs from CR3 cause exit
+		UINT32 useTprShadow : 1;				// [21] - enables TPR virtualization, and APIC virtualization
+		UINT32 nmiWindowExit : 1;				// [22] - exits if no virtual NMI blocking
+		UINT32 movDrExit : 1;					// [23] - MOV DR causes exit
+		UINT32 unconditionalIoExit : 1;			// [24] - exits if IN, INS/INSB/INSW/INSD, OUT, OUTS/OUTSB/OUTSW/OUTSD executed
+		UINT32 virtualizeIoBitmaps : 1;			// [25] - 0 => don't use bitmaps, 1 => use bitmaps
+		UINT32 reserved6 : 1;					// [26]
+		UINT32 monitorTrapFlag : 1;				// [27] - monitor trap flag debugging features enabled
+		UINT32 virtualizeMsrBitmaps : 1;		// [28] - virtualize MSR bitmaps - RDMSR / 
+		UINT32 monitorExit : 1;					// [29] - MONITOR  
+		UINT32 pauseExit : 1;					// [30] - PAUSE Exiting 
+		UINT32 activateSecondaryControls : 1;	// [31] - Activate secondary controls
 	} fields;
 	UINT32 all;
 } VMExecCtrlFields;
