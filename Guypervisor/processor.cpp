@@ -29,9 +29,15 @@ void processor::ReadGDTEntry(GDTR gdt, UINT16 selector, vmxGdtEntry* entry)
     }
 
 
-   tmp_entry = reinterpret_cast<processor::GDTEntry*>(gdt.base + (selector >> kRplMask) * sizeof(processor::GDTEntry));
+   tmp_entry = reinterpret_cast<processor::GDTEntry*>((uintptr_t)gdt.base + (selector & ~kRplMask));
 
    entry->fields.limit = __segmentlimit(selector);
-   entry->fields.access = __lar(selector);
+   entry->fields.access = __lar(selector) >> 8;
    entry->fields.base = ((tmp_entry->base2 << 24) | (tmp_entry->base1 << 16) | (tmp_entry->base0)) & MAXULONG;
+
+   if (tmp_entry->system == 0) {
+       // MDbgPrint("[BEFORE] Translated system GDT entry: %X\n", entry->fields.base);
+       entry->fields.base |= (((UINT64)tmp_entry->base3) << 32);
+       // MDbgPrint("[AFTER] Translated system GDT entry: %X\n", entry->fields.base);
+   }
 }

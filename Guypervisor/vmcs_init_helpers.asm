@@ -8,13 +8,20 @@ public GetGsSelector
 public GetLdtrSelector
 public GetTrSelector
 public guest_code
+;public vmexit_handler
 public __read_rsp
 public __read_esp
 
 guest_code PROC 
-    mov rax, 1
-    rdtsc 
+    xor rax, rax
+loop_pls:
+    cpuid 
+    jmp loop_pls
 guest_code ENDP
+
+;vmexit_handler PROC
+;   int 3
+;vmexit_handler ENDP
 
 GetEsSelector PROC
     ; Returns es selector register

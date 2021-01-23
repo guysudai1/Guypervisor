@@ -62,7 +62,7 @@ namespace processor {
 	} segmentSelector;
 
 #pragma pack(push,1)
-
+	// Page 2880 
 	typedef struct _gdtEntry {
 		UINT16 limit0;
 		UINT16 base0;
@@ -71,7 +71,7 @@ namespace processor {
 			UINT16 type : 4;
 			UINT16 system : 1;
 			UINT16 dpl : 2;
-			UINT16 p : 1;
+			UINT16 present : 1;
 		};
 		struct {
 			UINT16 limit1 : 4;
@@ -81,6 +81,8 @@ namespace processor {
 			UINT16 g : 1;
 			UINT16 base2 : 8;
 		};
+		UINT32 base3;
+		UINT32 zeroed_out; // Must be zero
 	} GDTEntry;
 
 #pragma pack(pop)
@@ -88,7 +90,7 @@ namespace processor {
 	typedef union _vmxGdtEntry {
 		struct {
 			UINT32 limit;		// First 16 bits of the limit
-			UINT32 base;	// First 16 bits of the base
+			UINT64 base;	// First 16 bits of the base
 			UINT32 access;
 		} fields;
 	} vmxGdtEntry;
