@@ -125,19 +125,13 @@ namespace virtualization {
 	cleanup:
 		return status;
 	}
-	//static void vmexit_handler() {
-	//	// processor::CPUInfo currentCpu;
-	//	// __cpuid(reinterpret_cast<int*>(&currentCpu), 0);
-
-	//	// __writedr(7, 0);
-	//}
 
 	static void vmexit_handler() {
 		NTSTATUS status = STATUS_SUCCESS;
 		ExitReason exit_reason{ 0 };
 		exit_reason.all = 0;
 
-		status = ReadVMCSField32(vmcs_field_encoding_e::kExitReason, &exit_reason.all);
+		status = ReadVMCSFieldGeneric(vmcs_field_encoding_e::kExitReason, &exit_reason.all);
 		if (!NT_SUCCESS(status)) {
 			MDbgPrint("Encountered an error but couldn't read exit reason from vmcs.\n");
 		}
@@ -145,9 +139,147 @@ namespace virtualization {
 		MDbgPrint("Basic vmexit reason: %s (exit reason %X).\n",
 			BasicExitReasonToString(static_cast<UINT32>(exit_reason.fields.basicExitReason)),
 			exit_reason);
-		MDbgPrint("Entering the guest has %s.", 
+		MDbgPrint("Entering the guest has %s.\n", 
 				(exit_reason.fields.VMEntryFailure == 1) ? "failed" : "succeeded");
-		MDbgPrint("OH NO! THEY USED VMEXIT\n");
+		__vmx_vmresume();
+	}
+
+	void DumpVmcsGuestArea()
+	{
+		UINT16 value_16 = 0;
+		UINT32 value_32 = 0;
+		UINT64 value_64 = 0;
+
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestEsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_ES_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_CS_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestSsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_SS_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestDsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_DS_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestFsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_FS_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGsSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_GS_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestLdtrSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_LDTR_SELECTOR: 0x%04X\n", value_16);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestTrSelector, &value_16);
+		MDbgPrint("VMCS_GUEST_TR_SELECTOR: 0x%04X\n", value_16);
+		// ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestInterruptStatus, &value_16);
+		MDbgPrint("VMCS_GUEST_INTERRUPT_STATUS: 0x%04X\n", 0); // value_16));
+		// ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPmlIndex, &value_16);
+		MDbgPrint("VMCS_GUEST_PML_INDEX: 0x%04X\n", 0); // value_16));
+
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPhysicalAddrFull, &value_64);
+		MDbgPrint("VMCS_GUEST_PHYSICAL_ADDRESS: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestVmcsLinkPtrFull, &value_64);
+		MDbgPrint("VMCS_GUEST_VMCS_LINK_POINTER: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32DebugCtlFull, &value_64);
+		MDbgPrint("VMCS_GUEST_DEBUGCTL: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32PatFull, &value_64);
+		MDbgPrint("VMCS_GUEST_PAT: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32EferFull, &value_64);
+		MDbgPrint("VMCS_GUEST_EFER: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32PerfGlobalCtrlFull, &value_64);
+		MDbgPrint("VMCS_GUEST_PERF_GLOBAL_CTRL: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPdpte0Full, &value_64);
+		MDbgPrint("VMCS_GUEST_PDPTE0: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPdpte1Full, &value_64);
+		MDbgPrint("VMCS_GUEST_PDPTE1: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPdpte2Full, &value_64);
+		MDbgPrint("VMCS_GUEST_PDPTE2: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPdpte3Full, &value_64);
+		MDbgPrint("VMCS_GUEST_PDPTE3: 0x%016llX\n", value_64);
+
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestEsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_ES_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_CS_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestSsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_SS_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestDsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_DS_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestFsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_FS_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGsLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_GS_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestLdtrLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_LDTR_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestTrLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_TR_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGdtrLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_GDTR_LIMIT: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIdtrLimit, &value_32);
+		MDbgPrint("VMCS_GUEST_IDTR_LIMIT: 0x%08lX\n", value_32);
+
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestEsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_ES_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_CS_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestSsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_SS_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestDsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_DS_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestFsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_FS_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGsAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_GS_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestLdtrAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_LDTR_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestTrAccessRights, &value_32);
+		MDbgPrint("VMCS_GUEST_TR_ACCESS_RIGHTS: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestInterruptibilityState, &value_32);
+		MDbgPrint("VMCS_GUEST_INTERRUPTIBILITY_STATE: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestActivityState, &value_32);
+		MDbgPrint("VMCS_GUEST_ACTIVITY_STATE: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestSmbase, &value_32);
+		MDbgPrint("VMCS_GUEST_SMBASE: 0x%08lX\n", value_32);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32SysenterCs, &value_32);
+		MDbgPrint("VMCS_GUEST_SYSENTER_CS: 0x%08lX\n", value_32);
+		// ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestVmxPreemptionTimerValue, &value_32);
+		MDbgPrint("VMCS_GUEST_VMX_PREEMPTION_TIMER_VALUE: 0x%08lX\n", 0); // value_32));
+
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCr0, &value_64);
+		MDbgPrint("VMCS_GUEST_CR0: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCr3, &value_64);
+		MDbgPrint("VMCS_GUEST_CR3: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCr4, &value_64);
+		MDbgPrint("VMCS_GUEST_CR4: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestEsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_ES_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestCsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_CS_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestSsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_SS_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestDsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_DS_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestFsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_FS_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGsBase, &value_64);
+		MDbgPrint("VMCS_GUEST_GS_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestLdtrBase, &value_64);
+		MDbgPrint("VMCS_GUEST_LDTR_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestTrBase, &value_64);
+		MDbgPrint("VMCS_GUEST_TR_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestGdtrBase, &value_64);
+		MDbgPrint("VMCS_GUEST_GDTR_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIdtrBase, &value_64);
+		MDbgPrint("VMCS_GUEST_IDTR_BASE: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestDr7, &value_64);
+		MDbgPrint("VMCS_GUEST_DR7: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestRsp, &value_64);
+		MDbgPrint("VMCS_GUEST_RSP: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestRip, &value_64);
+		MDbgPrint("VMCS_GUEST_RIP: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestRFlags, &value_64);
+		MDbgPrint("VMCS_GUEST_RFLAGS: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestPendingDebugExceptions, &value_64);
+		MDbgPrint("VMCS_GUEST_PENDING_DEBUG_EXCEPTIONS: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32SysenterEip, &value_64);
+		MDbgPrint("VMCS_GUEST_SYSENTER_ESP: 0x%016llX\n", value_64);
+		ReadVMCSFieldGeneric(vmcs_field_encoding::kGuestIa32SysenterEsp, &value_64);
+		MDbgPrint("VMCS_GUEST_SYSENTER_EIP: 0x%016llX\n", value_64);
 	}
 
 	NTSTATUS PopulateActiveVMCS() {
@@ -283,15 +415,15 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestCsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestCsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestCsAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase, current_entry.fields.base);
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCsBase, 0);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostCsSelector, segment_selector.cs & ~kRplMask);
 
 		MDbgPrint("Writing CS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Guest Base: 0x%016llX\n", 
-			segment_selector.cs & ~kRplMask, segment_selector.cs, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base);
+			segment_selector.cs & ~kRplMask, segment_selector.cs, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base);
 
 		/**
 		 *  Load SS Segment (Ring 0 Data)
@@ -301,14 +433,14 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestSsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestSsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestSsAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase, current_entry.fields.base);
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestSsBase, 0);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostSsSelector, segment_selector.ss & ~kRplMask);
 		MDbgPrint("Writing SS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Guest Base: 0x%016llX\n",
-			segment_selector.ss & ~kRplMask, segment_selector.ss, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base);
+			segment_selector.ss & ~kRplMask, segment_selector.ss, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base);
 
 		/**
 		 *  Load DS Segment (Ring 3 Data)
@@ -318,13 +450,13 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestDsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestDsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestDsAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDsBase, current_entry.fields.base);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostDsSelector, segment_selector.ds & ~kRplMask);
 		MDbgPrint("Writing DS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Guest Base: 0x%016llX\n",
-			segment_selector.ds & ~kRplMask, segment_selector.ds, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base);
+			segment_selector.ds & ~kRplMask, segment_selector.ds, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base);
 
 		/**
 		 *  Load ES Segment (Ring 3 Data)
@@ -334,13 +466,13 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestEsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestEsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestEsAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestEsBase, current_entry.fields.base);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostEsSelector, segment_selector.es & ~kRplMask);
 		MDbgPrint("Writing ES Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Guest Base: 0x%016llX\n",
-			segment_selector.es & ~kRplMask, segment_selector.es, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base);
+			segment_selector.es & ~kRplMask, segment_selector.es, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base);
 
 
 		/**
@@ -351,9 +483,9 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestFsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestFsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestFsAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, current_entry.fields.base);
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestFsBase, msr::ReadMsr(msr::intel_e::kIa32FsBase));
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostFsBase, current_entry.fields.base);
@@ -362,7 +494,7 @@ namespace virtualization {
 		/*MDbgPrint("Writing FS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Host Base: 0x%016llX, Guest Base: 0x%016llX\n",
 			segment_selector.fs & ~kRplMask, segment_selector.fs, current_entry.fields.limit, current_entry.fields.access, msr::ReadMsr(msr::intel_e::kIa32FsBase), msr::ReadMsr(msr::intel_e::kIa32FsBase));*/
 		MDbgPrint("Writing FS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Host Base: 0x%016llX, Guest Base: 0x%016llX\n",
-			segment_selector.fs & ~kRplMask, segment_selector.fs, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base, current_entry.fields.base);
+			segment_selector.fs & ~kRplMask, segment_selector.fs, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base, current_entry.fields.base);
 
 		/**
 		 *  Load GS Segment (Ring 3 Data if in Compatibility-Mode, MSR-based in Long Mode)
@@ -372,16 +504,16 @@ namespace virtualization {
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestGsLimit, current_entry.fields.limit);
 
 		// Zero out reserved bits
-		current_entry.fields.access &= ~(((UINT32)((1 << 4) - 1)) << 8);
+		// current_entry.fields.access.all &= ~(((UINT32)((1 << 4) - 1)) << 8);
 
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestGsAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestGsAccessRights, current_entry.fields.access.all);
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestGsBase, msr::ReadMsr(msr::intel_e::kIa32GsBase));
 		// status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostGsBase, msr::ReadMsr(msr::intel_e::kIa32GsBase));
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostGsSelector, segment_selector.gs & ~kRplMask);
 		MDbgPrint("Writing GS Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Host Base: 0x%016llX, Guest Base: 0x%016llX\n",
-			segment_selector.gs & ~kRplMask, segment_selector.gs, current_entry.fields.limit, current_entry.fields.access, msr::ReadMsr(msr::intel_e::kIa32GsBase), msr::ReadMsr(msr::intel_e::kIa32GsBase));
+			segment_selector.gs & ~kRplMask, segment_selector.gs, current_entry.fields.limit, current_entry.fields.access.all, msr::ReadMsr(msr::intel_e::kIa32GsBase), msr::ReadMsr(msr::intel_e::kIa32GsBase));
 
 		/**
 		 *  Load TR Segment (Ring 0 TSS)
@@ -389,12 +521,12 @@ namespace virtualization {
 		processor::ReadGDTEntry(gdtr, segment_selector.tr, &current_entry);
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestTrSelector, segment_selector.tr);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestTrLimit, current_entry.fields.limit);
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestTrAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestTrAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestTrBase, current_entry.fields.base);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostTrBase, current_entry.fields.base);
 		status |= WriteVMCSField16(vmcs_field_encoding::kHostTrSelector, segment_selector.tr & ~kRplMask);
 		MDbgPrint("Writing TR Segment. Host Selector: 0x%04X, Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Host Base: 0x%016llX, Guest Base: 0x%016llX\n",
-			segment_selector.tr & ~kRplMask, segment_selector.tr, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base, current_entry.fields.base);
+			segment_selector.tr & ~kRplMask, segment_selector.tr, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base, current_entry.fields.base);
 
 
 		/**
@@ -403,10 +535,10 @@ namespace virtualization {
 		processor::ReadGDTEntry(gdtr, segment_selector.ldtr, &current_entry);
 		status |= WriteVMCSField16(vmcs_field_encoding::kGuestLdtrSelector, segment_selector.ldtr);
 		status |= WriteVMCSField32(vmcs_field_encoding::kGuestLdtrLimit, current_entry.fields.limit);
-		status |= WriteVMCSField32(vmcs_field_encoding::kGuestLdtrAccessRights, current_entry.fields.access);
+		status |= WriteVMCSField32(vmcs_field_encoding::kGuestLdtrAccessRights, current_entry.fields.access.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestLdtrBase, current_entry.fields.base);
 		MDbgPrint("Writing LDTR Segment. Guest Selector: 0x%04X, Guest Limit: 0x%08X, Guest Access Rights: 0x%08X, Guest Base: 0x%016llX\n",
-			segment_selector.ldtr, current_entry.fields.limit, current_entry.fields.access, current_entry.fields.base);
+			segment_selector.ldtr, current_entry.fields.limit, current_entry.fields.access.all, current_entry.fields.base);
 
 
 		/**
@@ -454,8 +586,8 @@ namespace virtualization {
 		guest_cr4_shadow.all = cr4;
 
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCr0, cr0);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr0, cr0);
-		MDbgPrint("Writing Guest CR0: 0x%016llX, Host CR0: 0x%016llX\n", cr0, cr0);
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr0, __readcr0());
+		MDbgPrint("Writing Guest CR0: 0x%016llX, Host CR0: 0x%016llX\n", cr0, __readcr0());
 
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kControlCr0Mask, guest_cr0_mask.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kControlCr0ReadShadow, guest_cr0_shadow.all);
@@ -473,8 +605,8 @@ namespace virtualization {
 		 * Load CR4
 		 */
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestCr4, cr4);
-		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr4, cr4);
-		MDbgPrint("Writing Guest CR4: 0x%016llX, Host CR4: 0x%016llX\n", cr4, cr4);
+		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr4, __readcr4());
+		MDbgPrint("Writing Guest CR4: 0x%016llX, Host CR4: 0x%016llX\n", cr4, __readcr4());
 
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kControlCr4Mask, guest_cr4_mask.all);
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kControlCr4ReadShadow, guest_cr4_shadow.all);
@@ -483,10 +615,10 @@ namespace virtualization {
 		/*
 		 *  Load debug MSR and DR7 register
 		 */
-		status |= WriteVMCSField64(vmcs_field_encoding::kGuestIa32DebugCtlFull, msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
+		// status |= WriteVMCSField64(vmcs_field_encoding::kGuestIa32DebugCtlFull, msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
 		status |= WriteVMCSFieldNatural(vmcs_field_encoding::kGuestDr7, __readdr(7));
 
-		MDbgPrint("Writing Guest IA32_DEBUG_CTL: 0x%016llX\n", msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
+		// MDbgPrint("Writing Guest IA32_DEBUG_CTL: 0x%016llX\n", msr::ReadMsr(msr::intel_e::kIa32DebugCtl));
 		MDbgPrint("Writing Guest DR7: 0x%016llX\n\n", __readdr(7));
 
 		/*
@@ -546,68 +678,15 @@ namespace virtualization {
 		msr::VmxMiscMsr misc_msr{ 0 };
 		misc_msr.all = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32VmxMisc));
 
-		// processor::natural_width debugctl_msr = msr::ReadMsr(msr::intel_e::kIa32DebugCtl);
-		processor::natural_width sysenter_esp_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEsp));
-		processor::natural_width sysenter_eip_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterEip)); 
-		UINT64 sysenter_cs_msr = __readmsr(static_cast<unsigned long>(msr::intel_e::kIa32SysenterCs));
-
-
-
-		
-		/**
-		 *  Write Guest fields (filled using the RESET table in page 3110)
-		 
-
-		// Control registers
-		
-
-		// Guest states
-		status = WriteVMCSField32(vmcs_field_encoding::kGuestInterruptibilityState, 0x00000000);
-		status = WriteVMCSField32(vmcs_field_encoding::kGuestActivityState, 0x00000000);
-		status = WriteVMCSField32(vmcs_field_encoding::kGuestSmbase, 0x00030000);
-
 		// Debug delivery (enable / disable / ... exceptions)
 		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestPendingDebugExceptions, 0x00000000);
 
-		// MSRs
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestIa32SysenterEsp,	0);
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kGuestIa32SysenterEip,	0);
-		status = WriteVMCSField32(vmcs_field_encoding::kGuestIa32SysenterCs,		0);
-		
-
-		// Link ptr write
-		
-
-		/**
-		 *  Write host fields
-		 
-
-		// TODO: Add tr base?
-		// status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostTrBase, );
-		
-		// MSRs
-		status = WriteVMCSField32(vmcs_field_encoding::kHostIa32SysenterCs, static_cast<UINT32>(sysenter_cs_msr));
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostIa32SysenterEsp, sysenter_esp_msr);
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostIa32SysenterEip, sysenter_eip_msr);
-		
-		// Registers
-
-		// Control Registers
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr0, __readcr0());
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr3, __readcr3());
-		status = WriteVMCSFieldNatural(vmcs_field_encoding::kHostCr4, __readcr4());
-
-		/**
-		 *  Control fields
-		 
-
-		
-	
 		MDbgPrint("Cr3 target values supported: %X\n", misc_msr.fields.cr3_target_values_supported);
 		status = WriteVMCSField32(vmcs_field_encoding::kControlCr3TargetCount, misc_msr.fields.cr3_target_values_supported);
 		*/
 
-	// cleanup:
+		DumpVmcsGuestArea();
+
 		if (status != STATUS_SUCCESS) {
 			MDbgPrint("Something went wrong...\n");
 		}
@@ -637,14 +716,14 @@ namespace virtualization {
 		ExitReason exit_reason{0};
 		exit_reason.all = 0;
 
-		status = ReadVMCSField32(vmcs_field_encoding_e::kVmInstructionError, &instruction_error);
+		status = ReadVMCSFieldGeneric(vmcs_field_encoding_e::kVmInstructionError, &instruction_error);
 
 		if (!NT_SUCCESS(status)) {
 			MDbgPrint("Encountered an error but couldn't read instruction error from vmcs.\n");
 			goto cleanup;
 		}
 		
-		status = ReadVMCSField32(vmcs_field_encoding_e::kExitReason, &exit_reason.all);
+		status = ReadVMCSFieldGeneric(vmcs_field_encoding_e::kExitReason, &exit_reason.all);
 		if (!NT_SUCCESS(status)) {
 			MDbgPrint("Encountered an error but couldn't read exit reason from vmcs.\n");
 			goto cleanup;
@@ -752,8 +831,8 @@ namespace virtualization {
 	 * VMX VMRead functions (64 bit, 32 bit, natural width)
 	 */
 
-	NTSTATUS ReadVMCSField32(vmcs_field_encoding_e encoding,
-							 UINT32* field) {
+	template <class T>
+	NTSTATUS ReadVMCSFieldGeneric(vmcs_field_encoding_e encoding, T	* field) {
 		NTSTATUS status = STATUS_SUCCESS;
 		SIZE_T tmp = 0;
 
@@ -768,7 +847,7 @@ namespace virtualization {
 			goto cleanup;
 		}
 
-		*field = static_cast<UINT32>(tmp);
+		*field = static_cast<T>(tmp);
 
 	cleanup:
 		return status;
@@ -803,7 +882,7 @@ namespace virtualization {
 #ifdef __64BIT__
 		status = ReadVMCSField64(encoding, field);
 #else
-		status = ReadVMCSField32(encoding, field);
+		status = ReadVMCSFieldGeneric(encoding, field);
 #endif
 
 		return status;

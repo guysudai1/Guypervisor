@@ -13,6 +13,7 @@ public __read_rsp
 public __read_esp
 
 guest_code PROC 
+    cli 
     xor rax, rax
 loop_pls:
     cpuid 

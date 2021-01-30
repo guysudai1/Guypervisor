@@ -217,28 +217,17 @@ typedef struct {
 	} modelSpecificRegisters;
 } HostState;
 
+// Page 15 (part 3)
 typedef union {
 	struct {
-		// If this control is 1, external interrupts cause VM exits
-		UINT32 externalInterruptExit : 1;
-
-		UINT32 reserved1 : 2;
-
-		// If this control is 1, non-maskable interrupts (NMIs) cause VM exits
-		UINT32 nmiExiting : 1;
-
-		UINT32 reserved2 : 1;
-
-		// NMIs never blocked
-		UINT32 virtualNMI : 1;
-
-		// preemption timer counts down, and an exit occurs when timer counts down to 0
-		UINT32 vmxPreemptionTimer : 1;
-
-		// processor treats interrupts with the posted-interrupt notification vector
-		UINT32 processInterrupts : 1;
-
-		UINT32 reserved3 : 25;
+		UINT32 externalInterruptExit : 1; // [0] - // If this control is 1, external interrupts cause VM exits
+		UINT32 reserved1 : 2;			  // [1:2]
+		UINT32 nmiExiting : 1;			  // [3] - If this control is 1, non-maskable interrupts (NMIs) cause VM exits
+		UINT32 reserved2 : 1;			  // [4]
+		UINT32 virtualNMI : 1;			  // [5] - NMIs never blocked
+		UINT32 vmxPreemptionTimer : 1;	  // [6] - preemption timer counts down, and an exit occurs when timer counts down to 0
+		UINT32 processInterrupts : 1;	  // [7] - processor treats interrupts with the posted-interrupt notification vector
+		UINT32 reserved3 : 25;			  // [8:31]
 	} fields;
 	UINT32 all;
 } PinBasedControls;
@@ -655,7 +644,7 @@ typedef struct {
 	VMExecCtrlFields executionCtrl;
 	SecondaryVMExecCtrls secondExecCtrl;
 
-	// UINT32 exceptionBitmap;
+	UINT32 exceptionBitmap;
 	// IOBitmap ioBitmaps;
 	// TimeScale timeFields;
 	EPTP eptPtr;

@@ -16,9 +16,8 @@ void processor::LoadSegmentSelectors(segmentSelector* segment_selector)
 void processor::ReadGDTEntry(GDTR gdt, UINT16 selector, vmxGdtEntry* entry)
 {
     processor::GDTEntry* tmp_entry = nullptr;
-
     // Zero out entry
-    entry->fields.access = 0;
+    entry->fields.access.all = 0;
     entry->fields.limit = 0;
     entry->fields.base = 0;
 
@@ -32,7 +31,14 @@ void processor::ReadGDTEntry(GDTR gdt, UINT16 selector, vmxGdtEntry* entry)
    tmp_entry = reinterpret_cast<processor::GDTEntry*>((uintptr_t)gdt.base + (selector & ~kRplMask));
 
    entry->fields.limit = __segmentlimit(selector);
-   entry->fields.access = __lar(selector) >> 8;
+
+   if (selector != 0) {
+       entry->fields.access.all = __lar(selector) >> 8;
+   }
+   else {
+       entry->fields.access.fields.unusable = 1;
+   }
+   
    entry->fields.base = ((tmp_entry->base2 << 24) | (tmp_entry->base1 << 16) | (tmp_entry->base0)) & MAXULONG;
 
    if (tmp_entry->system == 0) {

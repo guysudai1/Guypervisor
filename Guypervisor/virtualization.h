@@ -70,10 +70,13 @@ namespace virtualization {
 		UINT64* field
 	);
 
-	NTSTATUS ReadVMCSField32(
+	template <class T>
+	NTSTATUS ReadVMCSFieldGeneric(
 		vmcs_field_encoding_e encoding,
-		UINT32* field
+		T* field
 	);
+
+	void DumpVmcsGuestArea();
 
 	NTSTATUS ReadVMCSFieldNatural(
 		vmcs_field_encoding_e encoding,

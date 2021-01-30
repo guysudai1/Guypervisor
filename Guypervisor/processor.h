@@ -85,15 +85,31 @@ namespace processor {
 		UINT32 zeroed_out; // Must be zero
 	} GDTEntry;
 
+
 #pragma pack(pop)
+
+#pragma pack(push,1)
+	typedef union _AccessRights{
+		struct {
+			UINT16 crap;		  // [0:15]
+			UINT16 unusable : 1;  // [16]
+			UINT16 reserved : 15; // [17:31]
+		} fields;
+		UINT32 all;
+	} AccessRights;
+#pragma pack(pop)
+
+#pragma pack(push,1)
 
 	typedef union _vmxGdtEntry {
 		struct {
 			UINT32 limit;		// First 16 bits of the limit
 			UINT64 base;	// First 16 bits of the base
-			UINT32 access;
+			AccessRights access;
 		} fields;
 	} vmxGdtEntry;
+
+#pragma pack(pop)
 
 #pragma pack(push,1)
 

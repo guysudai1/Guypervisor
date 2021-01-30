@@ -83,6 +83,8 @@ DriverEntry(
         goto cleanup;
     }
 
+    irp_handlers::ioctl::EnterVmxHandler(0, 0);
+
 cleanup:
     if (!NT_SUCCESS(status)) {
         if (kGuypervisor != nullptr) 
